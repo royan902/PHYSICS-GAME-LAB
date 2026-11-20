@@ -31,7 +31,7 @@ test("home, catalog filters, all details, about and invalid slug", async ({
     ),
   ).toBe(true);
   await page.screenshot({
-    path: `docs/previews/home-${testInfo.project.name}.png`,
+    path: `test-results/platform-home-${testInfo.project.name}.png`,
     fullPage: true,
   });
   await page.getByRole("link", { name: "Explore Games", exact: true }).click();
@@ -46,15 +46,25 @@ test("home, catalog filters, all details, about and invalid slug", async ({
   for (const slug of slugs) {
     await page.locator(`.game-card[href="/games/${slug}"]`).click();
     await expect(page).toHaveURL(`/games/${slug}`);
-    await expect(
-      page.getByRole("heading", { name: "Game Mode", exact: true }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: "Simulation Mode", exact: true }),
-    ).toBeVisible();
-    await expect(
-      page.getByText("Concept preview · Gameplay belum tersedia"),
-    ).toBeVisible();
+    if (slug === "billiard") {
+      await expect(
+        page.getByRole("button", { name: "Game Mode", exact: true }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: "Simulation Mode", exact: true }),
+      ).toBeVisible();
+      await expect(page.locator("canvas")).toBeVisible();
+    } else {
+      await expect(
+        page.getByRole("heading", { name: "Game Mode", exact: true }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "Simulation Mode", exact: true }),
+      ).toBeVisible();
+      await expect(
+        page.getByText("Concept preview · Gameplay belum tersedia"),
+      ).toBeVisible();
+    }
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
@@ -62,7 +72,7 @@ test("home, catalog filters, all details, about and invalid slug", async ({
     ).toBe(true);
     if (slug === "billiard")
       await page.screenshot({
-        path: `docs/previews/detail-${testInfo.project.name}.png`,
+        path: `test-results/platform-detail-${testInfo.project.name}.png`,
         fullPage: true,
       });
     await page.reload();

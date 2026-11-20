@@ -571,7 +571,8 @@ h3 {
 }
 .skip-link {
   position: fixed;
-  top: -100px;
+  top: 10px;
+  clip-path: inset(50%);
   left: 20px;
   z-index: 100;
   background: #fff;
@@ -579,7 +580,7 @@ h3 {
   padding: 12px;
 }
 .skip-link:focus {
-  top: 10px;
+  clip-path: none;
 }
 @media (min-width: 1500px) {
   .container {

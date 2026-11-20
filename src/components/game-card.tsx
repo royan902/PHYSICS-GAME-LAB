@@ -27,7 +27,7 @@ export function GameCard({ game }: { game: Game }) {
         <p>{game.topic}</p>
         <div className="card-bottom">
           <span
-            className={`status ${game.status === "In Development" ? "development" : ""}`}
+            className={`status ${game.status !== "Coming Soon" ? "development" : ""}`}
           >
             <span aria-hidden="true" />
             {game.status}

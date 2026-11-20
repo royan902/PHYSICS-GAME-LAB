@@ -9,7 +9,8 @@
     "lint": "eslint src tests playwright.config.ts",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
-    "test": "vitest run"
+    "test": "vitest run",
+    "format": "prettier --write src/games/billiard tests/physics tests/e2e/billiard.spec.ts vitest.config.mts"
   },
   "engines": {
     "node": ">=26 <27"
@@ -30,6 +31,7 @@
     "@types/three": "0.187.0",
     "eslint": "9.39.5",
     "eslint-config-next": "16.4.6",
+    "prettier": "3.10.1",
     "tailwindcss": "4.3.5",
     "typescript": "5.9.3",
     "vitest": "5.1.1"

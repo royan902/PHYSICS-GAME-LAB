@@ -3,7 +3,7 @@ export type Game = {
   title: string;
   dimension: "2D" | "3D";
   topic: string;
-  status: "In Development" | "Coming Soon";
+  status: "Playable" | "In Development" | "Coming Soon";
   description: string;
   concepts: readonly string[];
   gameMode: string;
@@ -15,7 +15,7 @@ export const games: readonly Game[] = [
     title: "Billiard Physics",
     dimension: "3D",
     topic: "Momentum & Collision",
-    status: "In Development",
+    status: "Playable",
     description:
       "Bidik, atur kekuatan, dan pelajari bagaimana tumbukan memindahkan momentum di atas meja biliar.",
     concepts: [

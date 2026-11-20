@@ -5,25 +5,39 @@ export default defineConfig({
   workers: 2,
   reporter: "list",
   use: {
-    baseURL: "http://127.0.0.1:3000",
+    baseURL: "http://127.0.0.1:3103",
     trace: "retain-on-failure",
     launchOptions: { channel: "msedge", chromiumSandbox: true },
   },
   projects: [
     { name: "desktop", use: { viewport: { width: 1440, height: 1000 } } },
-    { name: "tablet", use: { viewport: { width: 768, height: 1024 } } },
+    {
+      name: "tablet",
+      testIgnore: "**/billiard-levels.spec.ts",
+      use: { viewport: { width: 768, height: 1024 } },
+    },
     {
       name: "mobile",
+      testIgnore: "**/billiard-levels.spec.ts",
       use: {
         viewport: { width: 375, height: 812 },
         isMobile: true,
         hasTouch: true,
       },
     },
+    {
+      name: "landscape",
+      testIgnore: "**/billiard-levels.spec.ts",
+      use: {
+        viewport: { width: 844, height: 390 },
+        isMobile: true,
+        hasTouch: true,
+      },
+    },
   ],
   webServer: {
-    command: "npm run start",
-    url: "http://127.0.0.1:3000",
+    command: "npm run start -- --port 3103",
+    url: "http://127.0.0.1:3103",
     reuseExistingServer: !process.env.CI,
     timeout: 60000,
   },

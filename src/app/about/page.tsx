@@ -26,14 +26,14 @@ export default function About() {
         <p>
           Setiap game direncanakan memiliki Game Mode untuk tantangan terarah
           dan Simulation Mode untuk mengubah parameter serta mengamati hasilnya.
-          Keduanya akan memakai model fisika yang sama, dengan asumsi yang
+          Kedua mode Billiard memakai model fisika yang sama, dengan asumsi yang
           dijelaskan.
         </p>
         <h2>Sedang dibangun, selangkah demi selangkah</h2>
         <p>
-          Saat ini Anda dapat menjelajahi katalog dan konsep lima game. Billiard
-          Physics menjadi game pertama yang dikembangkan pada Fase 3. Seluruh
-          gameplay masih dalam pengembangan.
+          Billiard Physics kini dapat dimainkan: lima tantangan Pocket Challenge
+          dan eksperimen momentum, tumbukan, gesekan, energi serta restitusi.
+          Empat game lainnya masih Coming Soon.
         </p>
         <Link href="/games" className="button primary">
           Explore Games <Arrow />
