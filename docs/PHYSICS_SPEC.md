@@ -18,7 +18,21 @@ Input harus finite; massa/radius >0, `g ≥0`, restitution `0..1`, friction `0..
 
 ## 1. Billiard Physics — prioritas
 
-### Dunia dan parameter
+### Implementasi Fase 3 (menggantikan rencana Rapier di bawah)
+
+Solver aktual disc kontinu TypeScript double precision, fixed 1/120 s, satu pemilik stepping. Radius 0.028575 m, area 2.54 × 1.27 m, m=0.17 kg, e bola=0.95, e bantalan=0.8, μ efektif=0.02. Sensor capture radius aktual **0.065 m**, gap sepanjang rail 0.095 m dari setiap ujung/pocket tengah. Garis collision bantalan adalah sisi area bermain; muka dalam mesh cocok dengan garis tersebut. Angka adalah tuning edukatif, bukan pengukuran material/standar turnamen.
+
+Setiap tick: drag setengah langkah → cari time of impact terawal dan advance semua bola → impuls/pocket → ulang sisa tick → drag setengah langkah. Bola-bola menggunakan kuadratik swept circle jarak 2r; bantalan swept line dengan rentang segmen dan rounded endpoint (jaw); pocket swept disk pusat bola. Collision normal `j=−(1+e)(v₂−v₁)·n/(1/m₁+1/m₂)`. Komponen tangensial tidak berubah. Bantalan `vₙ' = −e_c vₙ`. Koreksi pemisahan 1e−9 m mencegah event nol berulang. Kontak simultan berurutan mengikuti ID dan urutan geometri, sehingga bukan solver cluster eksak. Safety limit 64 event/tick membuang sisa waktu dan menaikkan counter diagnostik; fixture sweep harus menunjukkan counter nol.
+
+Drag `a=μg`, g=9.81 m/s², clamped tanpa membalik arah; split drag memberi jarak bebas mendekati integrasi trapezoid. Tidak ada damping/floor friction tambahan. Shot `v₀=0.05P` m/s untuk P persen 0–100, `J=m v₀`, diterapkan sekali di tick command. HUD memakai fungsi shot yang sama dan hasil kecepatan sesudah impuls sebelum drag. Tidak ada estimasi gaya Newton karena durasi kontak tidak dimodelkan. E hanya energi translasi.
+
+Semua bola aktif <0.01 m/s selama 30 tick berarti meja diam, kemudian snap nol. Pocket langsung menonaktifkan bola dan event sekali; scratch + target terakhir pada tick sama tetap menghitung penalti sebelum menang. Respawn grid bebas overlap setelah settle. Batas level = pukulan + penalti. Menang dievaluasi setelah settle, mendahului kalah bila target terakhir berhasil pada pukulan terakhir. Bank Shot menawarkan rute pantulan tetapi tidak memaksa pemain memakainya.
+
+Simulation Mode memakai kernel yang sama, m bersama 0.10–0.30 kg, μ 0–0.08 (nol sah untuk eksperimen konservasi), e 0–1, e bantalan ≤e bola, v₀ 0–5 m/s. Parameter draft baru aktif melalui Terapkan & reset; memilih eksperimen juga reset. Momentum/dua bola/restitusi menggunakan dua bola, gesek/energi satu bola. Telemetry per bola dan total tersedia; grafik energi 10 Hz, maksimum 120 sampel terakhir. Spin, rolling friction lengkap, jump, deformasi dan efek swerve/throw tidak disimulasikan. Tidak mengklaim konservasi momentum meja terbuka dengan bantalan/pocket/drag.
+
+Oracle dan toleransi pada bagian acceptance tetap berlaku, dijalankan pada solver produksi asli tanpa mock. Pengujian E2E visual tidak menggantikan oracle numerik. Detail hasil aktual ada di laporan Fase 3.
+
+### Rencana historis sebelum implementasi Fase 3 (bukan runtime aktual)
 
 Rapier 3D, sphere collider, bantalan statis sederhana dan pocket sensor. Model MVP 2.5D: pusat bola tetap di Y = radius, translasi Y dikunci, rotasi dinamis dikunci; mesh boleh berputar untuk efek rolling visual tetapi tidak dianggap spin fisik. Gravitasi world boleh tetap default, namun benda meja yang Y-nya dikunci tidak menerima model gaya kontak lantai tambahan. Hambatan meja dibuat eksplisit; jangan menambahkan floor friction/damping sebagai gaya kedua. Tidak ada jump, masse, spin, atau klaim dinamika rolling lengkap.
 

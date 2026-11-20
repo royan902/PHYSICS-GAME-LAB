@@ -17,6 +17,8 @@ Baseline perencanaan: **20 November 2026, Asia/Jakarta**. Seluruh pilihan versi,
 | [PHASE_1_REPORT.md](PHASE_1_REPORT.md) | Audit environment, tools dan hasil MCP/WebGL |
 | [PHASE_2_REQUIREMENTS.md](PHASE_2_REQUIREMENTS.md) | Scope final Website Platform MVP dan kebutuhan Fase 3 |
 | [PHASE_2_REPORT.md](PHASE_2_REPORT.md) | Implementasi, hasil QA, screenshot dan kesiapan Fase 3 |
+| [PHASE_3_PLAN.md](PHASE_3_PLAN.md) | Audit, acceptance dan keputusan solver Fase 3 |
+| [PHASE_3_REPORT.md](PHASE_3_REPORT.md) | Hasil playable MVP, validasi fisika, QA dan keterbatasan |
 | [REFERENCES.md](REFERENCES.md) | Sumber resmi yang diperiksa dan pemetaan keputusan |
 
 Urutan baca: blueprint → arsitektur → spesifikasi fisika → roadmap → kebutuhan fase berikutnya. Untuk implementasi, baca juga `../AGENTS.md` dan skill yang relevan. Jika keputusan berubah, ubah sumber utamanya dan tautan terkait, bukan membuat spesifikasi tandingan.

@@ -1,21 +1,25 @@
 // Run against npm run start -- --port 3103. No browser security overrides.
 import { chromium } from "@playwright/test";
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 const baseURL = "http://127.0.0.1:3103";
 const browser = await chromium.launch({
   channel: "msedge",
   chromiumSandbox: true,
 });
-const report = {
-  date: new Date().toISOString(),
-  os: os.release(),
-  cpu: os.cpus()[0].model,
-  browser: browser.version(),
-  samples: [],
-  lifecycle: [],
-};
-for (const mobile of [false, true]) {
+const lifecycleOnly = process.argv.includes("--lifecycle-only");
+const report = lifecycleOnly
+  ? JSON.parse(await readFile("docs/previews/phase-3-performance.json", "utf8"))
+  : {
+      date: new Date().toISOString(),
+      os: os.release(),
+      cpu: os.cpus()[0].model,
+      browser: browser.version(),
+      samples: [],
+      lifecycle: [],
+    };
+report.lifecycle = [];
+for (const mobile of lifecycleOnly ? [] : [false, true]) {
   const context = await browser.newContext({
     viewport: mobile
       ? { width: 375, height: 812 }
@@ -142,7 +146,11 @@ const context = await browser.newContext({
   }),
   page = await context.newPage();
 for (let i = 0; i < 10; i++) {
-  await page.goto(`${baseURL}/games/billiard`);
+  if (i === 0) await page.goto(`${baseURL}/games/billiard`);
+  else
+    await page
+      .getByRole("link", { name: "Lihat detail Billiard Physics" })
+      .click();
   await page.waitForFunction(
     () => document.querySelector("canvas")?.dataset.geometries,
   );
@@ -150,6 +158,10 @@ for (let i = 0; i < 10; i++) {
     .locator("canvas")
     .evaluate((c) => ({ ...c.dataset }));
   await page.getByRole("link", { name: "Kembali ke katalog" }).click();
+  await page.waitForURL(`${baseURL}/games`);
+  await page.waitForFunction(
+    () => document.querySelectorAll("canvas").length === 0,
+  );
   const canvases = await page.locator("canvas").count();
   report.lifecycle.push({
     cycle: i + 1,

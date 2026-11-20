@@ -1,4 +1,12 @@
-# Arsitektur awal
+# Arsitektur Physics Game Lab
+
+## Implementasi Fase 3
+
+`src/games/billiard/physics.ts` adalah solver disc TypeScript pada bidang XZ, bukan Rapier. Keputusan ini menggantikan baseline Rapier untuk Billiard saja: continuous time of impact bola, rail, jaw dan pocket cocok untuk translasi 2.5D tanpa spin, tidak membutuhkan world 3D/WASM. Kontak simultan berurutan deterministik, bukan model rigid body umum. Lihat [PHYSICS_SPEC.md](PHYSICS_SPEC.md) dan [PHASE_3_REPORT.md](PHASE_3_REPORT.md).
+
+Modul aktual: `physics.ts` kernel SI; `session.ts` fixed-step/rules/telemetry; `levels.ts` lima layout; `experiments.ts` preset eksperimen; `input.ts` command pointer/keyboard; `scene.tsx` R3F/kamera; `game.tsx` HUD/kontrol; `game-loader.tsx` dynamic import client-only. Hanya callback `useFrame` meja memanggil accumulator sesi; ball meshes membaca world melalui refs. HUD disampling 10 Hz, tidak menyimpan pose di React state. Render memakai pose tick terakhir (120 Hz), belum interpolasi antartick. Ini cukup untuk MVP dan tidak memengaruhi solver.
+
+Canvas dipertahankan saat ganti mode/reset; Table dan preset diganti. OrbitControls, context-loss handler, listener blur/visibility, timer UI, texture label dan resource R3F dibersihkan pada unmount. WebGL context loss nyata menghentikan sesi dan menyediakan muat ulang. Route katalog tidak mengimpor Three secara eager. Registry menyatakan empat game lain Coming Soon. Tidak ada backend/deploy.
 
 ## Status implementasi Fase 2
 
@@ -8,7 +16,7 @@ Instruksi terbaru membatasi Fase 2 pada website katalog. src/app menangani route
 
 Satu aplikasi Next.js App Router, TypeScript strict, Tailwind CSS, satu package manager (rencana npm), satu lockfile. Tidak perlu workspace monorepo. Next.js menyajikan halaman/katalog dan UI DOM. Runtime game di client dimuat per route, agar pengunjung katalog tidak mengunduh seluruh engine. Pilihan ini adalah keputusan proyek, bukan persyaratan semua library.
 
-3D memakai Three.js melalui React Three Fiber (R3F). Rapier 3D diakses melalui adapter tipis milik proyek; pilih binding WASM stable yang sesuai setelah spike Fase 3. Baseline memakai Rapier langsung, tanpa `@react-three/rapier`, sehingga hanya satu pemilik loop. Wrapper bisa dipertimbangkan dengan catatan keputusan jika mengurangi kode dan tetap menjaga akses headless dan single-step. Phaser dipakai untuk render/input Rocket Landing pada fasenya; Arcade/Matter tidak otomatis diaktifkan.
+3D memakai Three.js melalui React Three Fiber (R3F). Billiard Fase 3 memakai solver khusus sebagaimana keputusan di atas. Rapier langsung (tanpa auto-step wrapper) tetap rencana untuk game berikutnya yang membutuhkan rigid body 3D; belum terpasang. Phaser ditunda sampai game 2D diperlukan.
 
 [R3F](https://r3f.docs.pmnd.rs/getting-started/introduction) menyediakan renderer React untuk Three.js. Versi stable dipilih mengikuti kompatibilitas React; jangan mengikuti dokumentasi alpha secara tidak sengaja. Integrasi framework dicek terhadap [panduan Next.js](https://nextjs.org/docs/app/getting-started/installation).
 

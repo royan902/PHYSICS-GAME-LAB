@@ -1,5 +1,11 @@
 # Tools, plugin, dan MCP
 
+## Status Fase 3
+
+Tambahan dependency aplikasi stable terpin: `three 0.187.0`, `@react-three/fiber 9.8.2` (peer React >=19 <19.4, Three >=0.156; React existing 19.3.1 cocok). Dev: `@types/three 0.187.0`, `vitest 5.1.1` (Node 26 kompatibel), `prettier 3.10.1` untuk formatting sumber baru. Next/React existing dipertahankan. Tidak memasang Drei/Rapier/Phaser: OrbitControls dari Three mencukupi, solver disc khusus memodelkan translasi 2.5D Billiard. Lockfile root diperbarui, tools/environment tidak diubah. `npm install` melaporkan 0 vulnerability pada audit saat instalasi; bukan audit keamanan menyeluruh.
+
+Game Studio skills routing → React Three Fiber dan Game Playtest dipakai bersama lima skill proyek. Playwright MCP dipakai untuk inspeksi Canvas/visual dan investigasi, suite Playwright Test repo tetap bukti regresi. Tidak memasang plugin baru. Dokumentasi resmi kompatibilitas: [R3F installation](https://r3f.docs.pmnd.rs/getting-started/installation), [Three OrbitControls](https://threejs.org/docs/pages/OrbitControls); versi aktual/peer diperiksa dengan npm registry saat instalasi. R3F 9 memakai Three.Clock yang memberi satu warning deprecated pada Three 0.187; tidak disembunyikan dan bukan error gameplay.
+
 ## Status Fase 2 terbaru
 
 Website memakai versi stable terpin pada package.json/lockfile root. Next 16.4.6, React 19.3.1, Tailwind 4.3.5, TypeScript 5.9.3 dan ESLint 9.39.5 dipilih mengikuti peer dependency transitif. ESLint 10 dan TypeScript 7 awalnya menghasilkan konflik peer; diturunkan ke kombinasi kompatibel. ESLint 9 memiliki peringatan dukungan upstream, sehingga perlu ditinjau ketika ekosistem config mendukung ESLint 10. Tidak ada engine game.

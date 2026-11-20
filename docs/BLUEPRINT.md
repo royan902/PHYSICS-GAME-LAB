@@ -18,6 +18,8 @@ Kelima baris adalah MVP bertahap, bukan scope rilis pertama. Rilis pertama yang 
 
 ## Mode dan alur
 
+Status Fase 3: Billiard memiliki lima level Pocket Challenge (1–3 target, batas pukulan per level) dan lima eksperimen. Empat game lain masih roadmap. Penjelasan MVP umum di bawah tetap menjadi arah produk; implementasi Billiard aktual dirinci pada PHASE_3_REPORT dan PHYSICS_SPEC. Bank Shot mengajarkan rute bantalan tetapi tidak memaksakan jenis pukulan; urutan level dapat dipilih untuk latihan.
+
 Game Mode memakai preset terkunci, tujuan jelas, skor lokal satu sesi, restart, pause/resume, dan keadaan menang/gagal. Simulation Mode memakai kernel yang sama, kontrol parameter berlabel satuan, reset, pause, single-step, dan pembacaan telemetry. Perubahan parameter saat pause memerlukan reset eksplisit sebelum run baru agar perbandingan tidak mencampur kondisi.
 
 Alur utama: katalog → pilih Billiard → pilih mode → baca kontrol singkat → mulai → bidik/atur daya → tembak → tunggu semua bola diam → ulangi atau reset. Pergantian mode mereset sesi dengan keterangan bahwa skor/eksperimen sesi dimulai ulang. Tidak perlu modal konfirmasi untuk setiap reset biasa.

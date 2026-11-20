@@ -6,7 +6,9 @@ Referensi pengguna: struktur katalog gambar kedua, card gambar pertama; branding
 
 Token aktual, responsive breakpoint, focus ring dan reduced-motion ada di src/app/globals.css. Tidak ada animasi loop. Filter All/3D/2D mengubah isi katalog. Detail menunjukkan kedua mode sebagai rencana, dengan status belum playable.
 
-## Rencana interaksi game Fase 3+
+## Interaksi game Fase 3
+
+Implementasi Billiard memakai meja sebagai fokus, panel kontrol DOM di samping pada desktop dan di bawah pada mobile, HUD fisika 2×2 pada layar kecil. Ring pocket dan pesan teks memberi feedback. Kamera perspektif/top-down, input kamera/bidikan terpisah, slider sebagai alternatif drag, pause overlay dan fallback WebGL tersedia. Screenshot dan batas pengujian visual pada PHASE_3_REPORT. Arahan di bawah adalah baseline desain; warna actual mengikuti CSS scoped Billiard. Skip link memakai clip-path ketika tidak fokus agar tidak bocor ke screenshot halaman penuh saat halaman di-scroll, tetap tersedia melalui Tab.
 
 Bagian berikut disimpan sebagai rencana awal, bukan desain website Fase 2. Palet website final di atas mengambil prioritas untuk shell katalog.
 

@@ -1,5 +1,15 @@
 # Strategi pengujian
 
+## Gate aktual Fase 3
+
+Jalankan `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run test:e2e`. Solver produksi asli TypeScript diuji langsung oleh Vitest (Billiard tidak memakai WASM). Suite memvalidasi oracle momentum/energi, massa berbeda, tumbukan miring, restitution, drag, sweep kontinu 360 arah, keenam pocket, scratch/respawn, counter/pause/loss, HUD, parity mode, cadence 30/60/120 FPS dan solvabilitas lima level dengan resolusi bidikan 0.1°. Toleransi ditetapkan di PHYSICS_SPEC sebelum implementasi.
+
+Playwright Test 1.65.1 memakai Edge terpasang dan sandbox aktif pada production port 3103, terpisah dari server existing 3000. Matrix: desktop 1440×1000, tablet 768×1024, touch mobile 375×812, touch landscape 844×390. Suite meliputi Canvas drag nyata (mouse/CDP touch), zoom wheel/pinch, screenshot sebelum/sesudah pocket, progresi/reset, parameter nyata dan single step, blur pause, WebGL unavailable/context loss, keyboard/reduced motion dan regresi katalog. Satu alur desktop tambahan menyelesaikan seluruh lima level berurutan. Tidak ada injeksi world/perintah fisika lewat global test API; data atribut hanya snapshot diagnostik read-only.
+
+Benchmark terpisah: jalankan `npm run start -- --port 3103`, lalu `node tools/benchmark-billiard.mjs`. Mengukur 60 s desktop dan 60 s mobile emulasi secara berurutan (hindari E2E bersamaan), 10 siklus route, rAF median/p95, long tasks, draw calls/triangles/resource counts, ready konservatif termasuk sampling resource pertama, cold transfer dengan jaringan 10 Mbps/100 ms. JSON bukti disimpan di docs/previews. rAF interval bukan pengukuran GPU frame time terpisah dan GPU/resource plateau bukan bukti absolut bebas leak. Detail angka, kegagalan/perbaikan dan batas perangkat ada di PHASE_3_REPORT.
+
+Firefox, WebKit, Android Chrome fisik, iPhone Safari fisik, zoom browser 200%, dan profil GPU mendalam tetap gate rilis yang belum diverifikasi kecuali laporan menyatakan bukti baru. Playable lokal tidak sama dengan persetujuan deployment produksi.
+
 ## Gate aktual Fase 2
 
 Scope final adalah website tanpa gameplay. Gunakan npm run lint, npm run typecheck, npm run build, npm run start, dan npm run test:e2e. Playwright Test stable memakai Edge yang sudah terpasang dengan sandbox aktif pada 1440×1000, 768×1024, dan 375×812. Dua skenario per viewport memverifikasi alur lengkap dan keyboard/reduced motion. Screenshot ada di docs/previews karena diminta sebagai output fase. Unit/physics suite dan Vitest ditunda sampai ada logika game yang perlu oracle numerik. Rencana suite physics di bawah berlaku mulai Fase 3, bukan gate Fase 2.
