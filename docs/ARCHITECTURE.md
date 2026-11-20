@@ -1,10 +1,14 @@
 # Arsitektur awal
 
+## Status implementasi Fase 2
+
+Instruksi terbaru membatasi Fase 2 pada website katalog. src/app menangani route, src/components UI dan filter, src/data/games.ts registry bertipe, public/images aset SVG. Tidak ada engine fisika/game terpasang. Kontrak runtime di bawah adalah rencana Fase 3+, bukan modul yang sudah dibuat. Dua lockfile memiliki scope terpisah: root untuk aplikasi dan tools/environment untuk tools audit yang sudah ada.
+
 ## Keputusan
 
 Satu aplikasi Next.js App Router, TypeScript strict, Tailwind CSS, satu package manager (rencana npm), satu lockfile. Tidak perlu workspace monorepo. Next.js menyajikan halaman/katalog dan UI DOM. Runtime game di client dimuat per route, agar pengunjung katalog tidak mengunduh seluruh engine. Pilihan ini adalah keputusan proyek, bukan persyaratan semua library.
 
-3D memakai Three.js melalui React Three Fiber (R3F). Rapier 3D diakses melalui adapter tipis milik proyek; pilih binding WASM stable yang sesuai setelah spike awal Fase 2. Baseline memakai Rapier langsung, tanpa `@react-three/rapier`, sehingga hanya satu pemilik loop. Wrapper bisa dipertimbangkan dengan catatan keputusan jika mengurangi kode dan tetap menjaga akses headless dan single-step. Phaser dipakai untuk render/input Rocket Landing pada fasenya; Arcade/Matter tidak otomatis diaktifkan.
+3D memakai Three.js melalui React Three Fiber (R3F). Rapier 3D diakses melalui adapter tipis milik proyek; pilih binding WASM stable yang sesuai setelah spike Fase 3. Baseline memakai Rapier langsung, tanpa `@react-three/rapier`, sehingga hanya satu pemilik loop. Wrapper bisa dipertimbangkan dengan catatan keputusan jika mengurangi kode dan tetap menjaga akses headless dan single-step. Phaser dipakai untuk render/input Rocket Landing pada fasenya; Arcade/Matter tidak otomatis diaktifkan.
 
 [R3F](https://r3f.docs.pmnd.rs/getting-started/introduction) menyediakan renderer React untuk Three.js. Versi stable dipilih mengikuti kompatibilitas React; jangan mengikuti dokumentasi alpha secara tidak sengaja. Integrasi framework dicek terhadap [panduan Next.js](https://nextjs.org/docs/app/getting-started/installation).
 
@@ -64,7 +68,7 @@ Vercel adalah target hosting, bukan kebutuhan runtime fisika server. Tidak ada A
 
 | Risiko | Respons awal dan gate |
 | --- | --- |
-| GPU HP/WASM/SSR | Spike awal Fase 2: init, render, resize, cleanup, production build dan error path |
+| GPU HP/WASM/SSR | Spike Fase 3: init, render, resize, cleanup, production build dan error path |
 | Tunneling bola cepat | CCD selektif, batas kecepatan, tes lintasan bantalan; jangan menutupinya dengan teleport |
 | Hambatan gulir dihitung dua kali | Satu pemilik gaya; tes stopping distance dan slip/rolling |
 | Bundle besar | Lazy load per game; Phaser tidak masuk fase awal; ukur build dan network |

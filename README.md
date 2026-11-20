@@ -1,9 +1,20 @@
 # Physics Game Lab
 
-Platform edukasi dan permainan fisika untuk browser HP, laptop, dan PC. Status saat ini: **Fase 1 — environment inti terverifikasi; aplikasi belum dibuat**. Lihat [laporan Fase 1](docs/PHASE_1_REPORT.md) untuk integrasi opsional dan checkpoint Git.
+Website katalog game simulasi fisika dengan desain Dark Gaming Modern. **Fase 2: Website Platform MVP**, tanpa gameplay. Billiard 3D dimulai pada Fase 3.
 
-Game pertama adalah Billiard Physics 3D. Empat game berikutnya: Golf Physics 3D, Rocket Landing 2D, Cannon Physics 3D, dan Ramp Race 3D. Setiap game memiliki Game Mode dan Simulation Mode dengan model fisika yang sama.
+## Menjalankan lokal
 
-Mulai dari [indeks dokumentasi](docs/README.md), [kebutuhan Fase 1](docs/PHASE_1_REQUIREMENTS.md), dan [laporan Fase 0](docs/PHASE_0_REPORT.md). Aturan agen ada di [AGENTS.md](AGENTS.md). Empat skill proyek ada di [.agents/skills](.agents/skills).
+Node 26 LTS dan npm diperlukan. Dari root proyek:
 
-Belum ada package manifest atau dependency aplikasi di root, website, atau deployment. Tools audit dan Playwright MCP berada terpisah di tools/environment. Jalankan `./tools/setup-environment.ps1` untuk memulihkan tools dari lockfile dan menyiapkan konfigurasi MCP lokal, `node tools/check-skills.mjs` untuk validasi skill, serta `node tools/audit-browser.mjs` untuk audit MCP/WebGL. Next.js dan library game baru dipasang pada Fase 2 sesuai [kebutuhan implementasi](docs/PHASE_2_REQUIREMENTS.md).
+```powershell
+npm ci
+npm run dev
+```
+
+Buka [http://127.0.0.1:3000](http://127.0.0.1:3000). Untuk production: `npm run build`, lalu `npm run start`.
+
+Pemeriksaan: `npm run lint`, `npm run typecheck`, `npm run test:e2e` (build production lebih dahulu; memakai Edge terpasang). Docs, skills dan tooling existing tetap dipertahankan. Tools MCP dipulihkan terpisah melalui `./tools/setup-environment.ps1`.
+
+Halaman: `/`, `/games`, `/games/[slug]`, `/about`. Lima game: Billiard Physics, Golf Physics, Rocket Landing, Cannon Physics, Ramp Race. Semua card membuka detail, bukan permainan.
+
+Baca [dokumentasi](docs/README.md), [laporan Fase 2](docs/PHASE_2_REPORT.md), [roadmap](docs/ROADMAP.md), dan [AGENTS.md](AGENTS.md). Tidak ada backend, database, tracking, atau engine game di runtime website.

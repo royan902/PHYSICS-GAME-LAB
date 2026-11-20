@@ -1,21 +1,20 @@
-# Kebutuhan awal Fase 2 — fondasi implementasi
+# Fase 2 — Website Platform MVP
 
-Backlog ini berasal dari fondasi teknis yang direncanakan pada Fase 0 untuk Fase 1, lalu ditunda sesuai instruksi pengguna terbaru. Tidak dikerjakan dalam setup environment.
+Instruksi pengguna Fase 2 menggantikan rencana fondasi/gameplay sebelumnya. Gameplay Billiard dipindah ke Fase 3. Pertahankan laporan Fase 0/1 sebagai riwayat.
 
-## Prasyarat
+## Scope dan penerimaan
 
-Baca AGENTS.md, PHASE_1_REPORT.md, ARCHITECTURE.md, PHYSICS_SPEC.md dan TESTING.md. Node LTS sudah terverifikasi; pilih kombinasi stable Next/React/Tailwind/Three/R3F/Rapier/Vitest/Playwright Test berdasarkan peer dependency saat implementasi. Tools MCP yang terisolasi bukan versi runtime/test aplikasi yang wajib ditiru. Pertahankan hasil fase sebelumnya saat scaffold folder nonkosong.
+- Next.js App Router, React, TypeScript strict, Tailwind dan ESLint; versi stable kompatibel, lockfile root. Tidak ada Three/R3F/Rapier/Phaser, backend atau database.
+- Home dengan navbar, hero Discover Physics Through Play., tombol Explore Games, katalog lima game dan footer.
+- /games memakai GameCard reusable dan typed registry; urutan Billiard, Golf, Rocket Landing, Cannon, Ramp Race. Billiard In Development, lainnya Coming Soon. Filter dimensi berfungsi.
+- Detail dinamis setiap slug: preview, deskripsi, materi fisika, status, rencana kedua mode dan link kembali. Unknown slug memberikan 404. Tidak ada tombol play palsu.
+- About menjelaskan tujuan dan status pengembangan.
+- Thumbnail SVG orisinal lokal, asal asset jelas, dimensi stabil. Desktop maksimal 3 kolom, tablet 2, mobile 1; navigasi/focus/touch/reduced motion dan tanpa overflow.
+- Validasi empat skill existing dan tambah game-performance-optimizer dengan metadata/workflow/checklist/success criteria.
+- Verifikasi plugin aktif, Playwright MCP serta Chrome DevTools MCP resmi yang compatible. Tidak menambahkan GitHub MCP.
+- Jalankan lint/typecheck/build, server lokal dan Playwright 1440/768/375 px. Periksa navigasi, semua detail, link, console dan overflow; simpan screenshot.
+- Buat PHASE_2_REPORT.md dengan hasil aktual/limit dan kesiapan Fase 3. Checkpoint lokal jika identitas valid; jangan push atau deploy.
 
-## Gate fondasi sebelum gameplay
+## Fase 3 berikutnya
 
-| ID | Pekerjaan | Acceptance criteria |
-| --- | --- | --- |
-| P2-F01 | Scaffold Next App Router, TS strict, Tailwind, ESLint | Satu manifest/lockfile aplikasi di root; docs/skills/tools tetap utuh |
-| P2-F02 | Shell Dark Gaming Modern dan katalog | Lima game, empat “Segera hadir”, route Billiard, viewport 360 px dan keyboard |
-| P2-F03 | Client-only R3F/Three spike | Resize/loading/error/WebGL fallback, production reload, cleanup/remount |
-| P2-F04 | Rapier 3D/WASM headless dan client spike | Satu world/step owner, initialize/step/reset/dispose; spike kecil sebelum meja |
-| P2-F05 | Fixed tick/config/input | SI, finite validation, accumulator cap, pause/reset dan simulated time teruji |
-| P2-F06 | Vitest dan Playwright Test aplikasi | Script TESTING.md, unit/config/tick, integrasi WASM asli, production build dan Chromium smoke lulus |
-| P2-F07 | CI GitHub Actions | Workflow clean install/static/unit/build/E2E; klaim remote run hanya jika benar-benar dijalankan |
-
-Sesudah gate fondasi, implementasikan Billiard cue + 3 target, kontrol shot, pocket/scratch, Game Mode dan Simulation Mode sesuai blueprint. Benchmark dan alur E2E harus lolos sebelum Fase 2 selesai. Jangan menarik Phaser/game lain/enhancement. Preview/remote memerlukan tujuan dan akses yang nyata; coding lokal tidak memerlukannya.
+Sebelum gameplay, pilih versi engine stable dan peer-compatible. Spike R3F/Rapier client/headless, fixed step SI, reset/dispose/fallback, kemudian meja cue + tiga target, shot/pocket/scratch dan dua mode bersama. Aktifkan Vitest/oracle fisika dan QA game sesuai PHYSICS_SPEC.md/TESTING.md. Angka fisika dokumen belum dibuktikan oleh tes website.

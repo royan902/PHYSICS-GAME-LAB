@@ -2,14 +2,14 @@
 
 Urutan adalah prioritas, bukan janji tanggal atau estimasi yang telah disetujui. Sebuah fase selesai berdasarkan bukti, bukan jumlah berkas.
 
-Revisi berdasarkan instruksi Fase 1: Development Environment Setup dipisahkan dari implementasi. Scaffold, library web/game, spike dan CI dipindah ke awal Fase 2. Fase 0 tetap catatan historis.
+Revisi final berdasarkan instruksi Fase 2: Fase 2 hanya Website Platform MVP. Gameplay, physics spike, engine 2D/3D, benchmark fisika dan CI terkait game dipindah ke Fase 3. Laporan fase sebelumnya tetap catatan historis.
 
 | Fase | Hasil | Gate kelulusan |
 | --- | --- | --- |
 | 0 — fondasi perencanaan | Dokumen, AGENTS.md, empat skill, strategi QA/Git | Output lengkap, tautan lokal valid, metadata skill diperiksa, tidak ada aplikasi/dependency |
 | 1 — Development Environment Setup | Audit OS/terminal/Node LTS/Git/browser, skills, plugin, MCP dan ignore rules | Tools inti, npm registry, YAML skills, MCP/WebGL diperiksa; batas dilaporkan; checkpoint jika identitas ada; tanpa aplikasi |
-| 2 — fondasi implementasi dan Billiard MVP | Scaffold Next.js/TS/Tailwind, katalog, spike R3F/Rapier, Vitest/Playwright Test/CI, lalu meja dan kedua mode | Gate fondasi: build/runtime/tes lebih dahulu; kemudian aturan sesi, reset, benchmark fisika dan E2E Billiard |
-| 3 — Billiard release | Responsivitas, fallback, performa, QA lintas browser, preview Vercel | Budget terukur, browser matrix, issue kritis selesai, checklist rilis terbukti |
+| 2 — Website Platform MVP | Next.js/React/TS/Tailwind, Home, Games, lima detail, About, SVG lokal dan QA | Lint/typecheck/build; navigasi, filter, detail, 404; screenshot 1440/768/375 px; lima skill dan audit MCP |
+| 3 — Billiard Physics 3D | R3F/Three/Rapier, fixed tick, meja latihan, Game Mode dan Simulation Mode | Benchmark fisika, aturan sesi, reset, lifecycle/fallback dan QA game sesuai scope; hosting hanya bila diminta |
 | 4 — Golf MVP | Putt satu hole, kedua mode | Jarak berhenti tervalidasi, hole capture konsisten, smoke touch/keyboard |
 | 5 — Rocket Landing MVP | Runtime Phaser 2D, thrust/fuel/landing, kedua mode | Free fall/hover/fuel/landing fixtures lolos; cleanup lintas runtime |
 | 6 — Cannon MVP | Peluru 3D, target, parameter, kedua mode | Oracle lintasan ideal, collision cepat, hasil konsisten; 2D view opsional sesudahnya |

@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const requireTool = createRequire(resolve(root, 'tools/environment/package.json'));
 const { parseDocument } = requireTool('yaml');
-const expected = ['physics-game-dev', 'physics-validation', 'physics-web-dev', 'web-game-qa'];
+const expected = ['game-performance-optimizer', 'physics-game-dev', 'physics-validation', 'physics-web-dev', 'web-game-qa'];
 const base = resolve(root, '.agents/skills');
 assert.deepEqual(readdirSync(base).sort(), expected);
 

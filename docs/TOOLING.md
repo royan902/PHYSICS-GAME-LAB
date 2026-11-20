@@ -1,6 +1,12 @@
 # Tools, plugin, dan MCP
 
-## Status Fase 1 terbaru
+## Status Fase 2 terbaru
+
+Website memakai versi stable terpin pada package.json/lockfile root. Next 16.4.6, React 19.3.1, Tailwind 4.3.5, TypeScript 5.9.3 dan ESLint 9.39.5 dipilih mengikuti peer dependency transitif. ESLint 10 dan TypeScript 7 awalnya menghasilkan konflik peer; diturunkan ke kombinasi kompatibel. ESLint 9 memiliki peringatan dukungan upstream, sehingga perlu ditinjau ketika ekosistem config mendukung ESLint 10. Tidak ada engine game.
+
+Playwright Test aplikasi stable 1.65.1 terpisah dari Playwright alpha khusus MCP tooling. Chrome DevTools MCP resmi 1.13.0 ditambahkan ke tools/environment dan konfigurasi lokal project, memakai Chrome isolated/headless tanpa menonaktifkan sandbox. Dua MCP sudah diuji terpisah; lihat PHASE_2_REPORT.md. Lima custom skills lolos validator YAML. Identitas Git lokal kini tersedia sesuai instruksi pengguna sesudah Fase 1; tidak mengubah global.
+
+## Status Fase 1 (riwayat)
 
 Scope Fase 1 diubah pengguna menjadi Development Environment Setup saja. Node v26.13.1 LTS Lithium, npm/npx 11.20.0, Git dan PowerShell sudah memenuhi prasyarat, sehingga tidak diinstal ulang. Detail audit dan batasnya ada di [PHASE_1_REPORT.md](PHASE_1_REPORT.md). Tabel pemeriksaan Fase 0 di bawah adalah riwayat, bukan status terkini.
 

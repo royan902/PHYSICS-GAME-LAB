@@ -7,6 +7,7 @@
 - MVP lebih dahulu. Billiard Physics 3D adalah game pertama; lima game tetap ada di roadmap, bukan dikerjakan sekaligus.
 - Fase 0 hanya dokumentasi dan skill. Jangan membuat website/gameplay atau memasang dependency dalam tugas Fase 0. Implementasi dimulai saat pengguna memberi tugas fase berikutnya.
 - Fase 1 terbaru hanya Development Environment Setup: scaffold Next.js, library aplikasi/game, dan gameplay ditunda ke Fase 2. Tools audit/MCP terisolasi boleh dipasang.
+- Fase 2 final hanya Website Platform MVP: Home, Games, detail dan About. Billiard playable, physics spike, Three/R3F/Rapier dan model simulasi dimulai pada Fase 3. Jangan push/deploy pada tugas Fase 2; checkpoint lokal diizinkan.
 - Rencana dalam dokumentasi bukan bukti implementasi. Tandai dengan jelas keputusan, asumsi, target, hasil pengukuran, dan pekerjaan tertunda.
 
 ## Batas perubahan

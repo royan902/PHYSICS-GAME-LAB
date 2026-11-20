@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@playwright/mcp": "0.0.86",
+    "chrome-devtools-mcp": "1.13.0",
     "yaml": "2.9.1"
   }
 }

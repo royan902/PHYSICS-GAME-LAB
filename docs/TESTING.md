@@ -1,6 +1,10 @@
 # Strategi pengujian
 
-## Status
+## Gate aktual Fase 2
+
+Scope final adalah website tanpa gameplay. Gunakan npm run lint, npm run typecheck, npm run build, npm run start, dan npm run test:e2e. Playwright Test stable memakai Edge yang sudah terpasang dengan sandbox aktif pada 1440×1000, 768×1024, dan 375×812. Dua skenario per viewport memverifikasi alur lengkap dan keyboard/reduced motion. Screenshot ada di docs/previews karena diminta sebagai output fase. Unit/physics suite dan Vitest ditunda sampai ada logika game yang perlu oracle numerik. Rencana suite physics di bawah berlaku mulai Fase 3, bukan gate Fase 2.
+
+## Status historis dan rencana
 
 Fase 0 hanya memeriksa artefak perencanaan. Fase 1 terbaru dibatasi pada environment: Playwright MCP dan YAML parser dipasang terisolasi di tools/environment, dengan audit kemampuan browser/MCP. Vitest, Playwright Test aplikasi, aplikasi dan CI belum dibuat/dijalankan. Perintah di bawah adalah kontrak script Fase 2, bukan perintah yang sudah tersedia. Lihat PHASE_1_REPORT.md.
 
