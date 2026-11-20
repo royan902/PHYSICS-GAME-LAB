@@ -1,0 +1,30 @@
+# Runtime/dependency/build output
+node_modules/
+.next/
+out/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# Test evidence and local development tools
+playwright-report/
+test-results/
+.tools/
+.codex/config.toml
+
+# Secrets (examples may contain placeholders only)
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+
+# Logs and OS/editor temporary files
+*.log
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

@@ -1,0 +1,3 @@
+interface:
+  display_name: "Physics Validation"
+  short_description: "Validasi numerik dan model fisika game"

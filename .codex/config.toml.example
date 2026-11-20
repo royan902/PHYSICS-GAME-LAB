@@ -1,0 +1,8 @@
+# Run tools/setup-environment.ps1 to generate the ignored local config.toml.
+# Example only: replace /absolute/project/path if configuring manually.
+[mcp_servers.playwright]
+command = "node"
+args = ["/absolute/project/path/tools/run-playwright-mcp.mjs"]
+cwd = "/absolute/project/path"
+startup_timeout_sec = 30
+tool_timeout_sec = 60
