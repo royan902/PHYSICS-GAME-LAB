@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Golf Physics — Gaya &amp; Gesekan</title>
+    <style>
+      /* SHARED_CSS_PLACEHOLDER */
+      :root {
+        --accent: #4ade80;
+        --accent-dim: rgba(74, 222, 128, 0.2);
+      }
+      .inline-note {
+        font-size: 0.72rem;
+        color: #fde68a;
+        margin-top: 4px;
+      }
+      .mode-switch {
+        display: inline-flex;
+        gap: 4px;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        border-radius: 10px;
+        padding: 3px;
+      }
+      .mode-btn {
+        min-height: 36px;
+        padding: 6px 12px;
+        border-radius: 7px;
+        border: none;
+        background: transparent;
+        color: var(--text-muted);
+        font-size: 0.76rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+      }
+      .mode-btn.active {
+        background: var(--accent);
+        color: #0f172a;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas-wrap" tabindex="0" aria-label="Arena Simulasi Golf Physics 3D"></div>
+
+    <div class="hud-layer">
+      <div class="top-bar">
+        <section class="panel scenario-card">
+          <div class="mission-header">
+            <div>
+              <div class="game-tools">
+                <a href="/games/golf" class="back-link">← Kembali ke Detail</a>
+                <button type="button" class="btn btn-util" id="btn-cam-reset">
+                  Reset Kamera
+                </button>
+              </div>
+              <h1 class="mission-title" id="mission-title">
+                Golf Physics — Gaya &amp; Gesekan Gulir
+              </h1>
+            </div>
+            <div class="mode-switch" role="tablist" aria-label="Pilih Mode">
+              <button
+                type="button"
+                class="mode-btn active"
+                id="mode-game-btn"
+                data-mode="game"
+                aria-selected="true"
+              >
+                Mode Game
+              </button>
+              <button
+                type="button"
+                class="mode-btn"
+                id="mode-sim-btn"
+                data-mode="simulation"
+                aria-selected="false"
+              >
+                Simulasi
+              </button>
+            </div>
+          </div>
+          <p class="mission-desc" id="mission-desc">
+            Arahkan pukulan dan atur kelajuan awal agar bola masuk lubang pada laju ≤ 0,50 m/s.
+          </p>
+          <div class="reaction-banner" id="status-banner" aria-live="polite">
+            <span id="status-text">Siap memukul · Par 2</span>
+            <span class="formula-pill">d = v₀² / (2·μr·g)</span>
+          </div>
+        </section>
+
+        <section class="panel telemetry-card" aria-label="Telemetri Fisika">
+          <div class="telemetry-title">
+            <span>Telemetri SI</span>
+            <span id="telem-strokes">Pukulan: 0</span>
+          </div>
+          <div class="stat-grid">
+            <div class="stat-box">
+              <span class="stat-label">Laju |v|</span>
+              <span class="stat-val" id="val-speed">0.00 m/s</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Jarak Tempuh</span>
+              <span class="stat-val" id="val-dist">0.00 m</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Sisa ke Lubang</span>
+              <span class="stat-val" id="val-hole">4.00 m</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Energi Kinetik</span>
+              <span class="stat-val" id="val-ke">0.000 J</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Gesekan Gulir</span>
+              <span class="stat-val" id="val-drag">0.000 N</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Prediksi Henti</span>
+              <span class="stat-val" id="val-pred">0.00 m</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="bottom-bar">
+        <section class="panel deck-card">
+          <div class="deck-section active" id="panel-game-controls">
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="input-speed">Kelajuan Pukulan (v₀)</label>
+                <strong id="lbl-speed">1.80 m/s</strong>
+              </div>
+              <input
+                id="input-speed"
+                type="range"
+                min="0.2"
+                max="4.0"
+                step="0.05"
+                value="1.8"
+              />
+            </div>
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="input-angle">Sudut Arah (A/D)</label>
+                <strong id="lbl-angle">0°</strong>
+              </div>
+              <input
+                id="input-angle"
+                type="range"
+                min="-45"
+                max="45"
+                step="1"
+                value="0"
+              />
+            </div>
+          </div>
+
+          <div class="deck-section" id="panel-sim-controls">
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="sim-mass">Massa Bola (m)</label>
+                <strong id="lbl-sim-mass">0.0459 kg</strong>
+              </div>
+              <input
+                id="sim-mass"
+                type="range"
+                min="0.03"
+                max="0.08"
+                step="0.001"
+                value="0.0459"
+              />
+            </div>
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="sim-mu">Koefisien Gesek Gulir (μr)</label>
+                <strong id="lbl-sim-mu">0.040</strong>
+              </div>
+              <input
+                id="sim-mu"
+                type="range"
+                min="0.01"
+                max="0.10"
+                step="0.005"
+                value="0.04"
+              />
+            </div>
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="sim-speed">Kelajuan Awal (v₀)</label>
+                <strong id="lbl-sim-speed">2.50 m/s</strong>
+              </div>
+              <input
+                id="sim-speed"
+                type="range"
+                min="0.2"
+                max="4.0"
+                step="0.05"
+                value="2.5"
+              />
+            </div>
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="sim-angle">Sudut Arah</label>
+                <strong id="lbl-sim-angle">0°</strong>
+              </div>
+              <input
+                id="sim-angle"
+                type="range"
+                min="-45"
+                max="45"
+                step="1"
+                value="0"
+              />
+            </div>
+            <p class="inline-note" id="sim-pending-note" hidden>
+              Parameter diubah — tekan Reset untuk menerapkan sebelum memukul.
+            </p>
+          </div>
+        </section>
+
+        <section class="panel actions-card">
+          <div class="btn-row">
+            <button type="button" class="btn btn-gas" id="btn-strike">
+              Pukul Bola (Space)
+            </button>
+            <button type="button" class="btn btn-blue" id="btn-reset">
+              Reset (R)
+            </button>
+            <button type="button" class="btn btn-util" id="btn-newhole">
+              Acak Lubang
+            </button>
+          </div>
+          <p class="cam-hint">
+            Seret latar untuk orbit kamera · Gulir untuk zoom · W/S atur kelajuan, A/D arah
+          </p>
+        </section>
+      </div>
+    </div>
+
+    <div id="runtime-error" hidden>
+      <h2>Simulasi Golf 3D tidak dapat dimuat</h2>
+      <p>Pastikan browser mendukung WebGL dan JavaScript aktif.</p>
+      <p><a href="/games/golf">Kembali ke halaman detail</a></p>
+    </div>
+
+    <script src="../../embedded-games/shared/three-r128.min.js"></script>
+    <script src="./kernel-bundle.js"></script>
+    <script src="./game.js"></script>
+  </body>
+</html>

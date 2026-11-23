@@ -1,6 +1,6 @@
 # Physics Game Lab
 
-Website game simulasi fisika dengan desain Dark Gaming Modern. Billiard menyediakan Classic 8-ball lokal dua pemain, Simulation Mode, HUD SI, mouse/touch/keyboard dan rendering R3F. Branch integrasi Newton menambahkan tiga eksperimen standalone; empat game roadmap lainnya Coming Soon.
+Website game simulasi fisika dengan desain Dark Gaming Modern. Billiard menyediakan Classic 8-ball lokal dua pemain, Simulation Mode, HUD SI, mouse/touch/keyboard dan rendering R3F. Platform kini mencakup tiga eksperimen Hukum Newton serta empat simulasi gerak interaktif: Golf Physics, Rocket Landing, Cannon Physics, dan Ramp Race.
 
 ## Menjalankan lokal
 

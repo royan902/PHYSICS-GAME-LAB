@@ -110,7 +110,7 @@ export const games: readonly Game[] = [
     title: "Golf Physics",
     dimension: "3D",
     topic: "Force & Friction",
-    status: "Coming Soon",
+    status: "Playable",
     description:
       "Temukan pukulan yang tepat dan jelajahi hubungan antara gaya, gesekan, dan jarak tempuh bola golf.",
     concepts: [
@@ -122,6 +122,12 @@ export const games: readonly Game[] = [
     gameMode: "Selesaikan tantangan satu hole dengan pukulan yang efisien.",
     simulationMode:
       "Ubah kekuatan pukulan, massa, dan hambatan untuk membandingkan jarak berhenti.",
+    runtime: {
+      kind: "html5",
+      src: "/games-html/golf/index.html",
+      aspectRatio: "16/9",
+      layout: "immersive",
+    },
   },
   {
     slug: "rocket-landing",
@@ -129,7 +135,7 @@ export const games: readonly Game[] = [
     title: "Rocket Landing",
     dimension: "2D",
     topic: "Thrust & Gravity",
-    status: "Coming Soon",
+    status: "Playable",
     description:
       "Seimbangkan dorongan dan gravitasi untuk membawa roket menuju pendaratan yang terkendali.",
     concepts: [
@@ -142,6 +148,12 @@ export const games: readonly Game[] = [
       "Daratkan roket di landasan dengan persediaan bahan bakar terbatas.",
     simulationMode:
       "Atur gravitasi, dorongan, dan bahan bakar; amati gaya serta kecepatan pendaratan.",
+    runtime: {
+      kind: "html5",
+      src: "/games-html/rocket-landing/index.html",
+      aspectRatio: "16/9",
+      layout: "immersive",
+    },
   },
   {
     slug: "cannon",
@@ -149,7 +161,7 @@ export const games: readonly Game[] = [
     title: "Cannon Physics",
     dimension: "3D",
     topic: "Projectile Motion",
-    status: "Coming Soon",
+    status: "Playable",
     description:
       "Jelajahi lintasan parabola dan hubungan sudut peluncuran dengan jangkauan sebuah proyektil.",
     concepts: [
@@ -161,6 +173,12 @@ export const games: readonly Game[] = [
     gameMode: "Pilih sudut dan kekuatan tembakan untuk mengenai target.",
     simulationMode:
       "Bandingkan lintasan dengan mengubah kecepatan awal, sudut, dan gravitasi.",
+    runtime: {
+      kind: "html5",
+      src: "/games-html/cannon/index.html",
+      aspectRatio: "16/9",
+      layout: "immersive",
+    },
   },
   {
     slug: "ramp-race",
@@ -168,7 +186,7 @@ export const games: readonly Game[] = [
     title: "Ramp Race",
     dimension: "3D",
     topic: "Energy & Motion",
-    status: "Coming Soon",
+    status: "Playable",
     description:
       "Lepaskan bola di lintasan miring dan lihat bagaimana energi potensial berubah menjadi gerak.",
     concepts: [
@@ -180,6 +198,12 @@ export const games: readonly Game[] = [
     gameMode: "Bandingkan dua bola dalam perlombaan menuruni lintasan.",
     simulationMode:
       "Ubah massa, radius, kemiringan, dan gesekan untuk mengamati waktu tempuh.",
+    runtime: {
+      kind: "html5",
+      src: "/games-html/ramp-race/index.html",
+      aspectRatio: "16/9",
+      layout: "immersive",
+    },
   },
 ];
 export function getGame(slug: string) {

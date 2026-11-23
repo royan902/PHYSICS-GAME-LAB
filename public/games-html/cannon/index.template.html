@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cannon Physics — Gerak Parabola</title>
+    <style>
+      /* SHARED_CSS_PLACEHOLDER */
+      :root {
+        --accent: #fb923c;
+        --accent-dim: rgba(251, 146, 60, 0.22);
+      }
+      .inline-note {
+        font-size: 0.72rem;
+        color: #fde68a;
+        margin-top: 2px;
+      }
+      .toggle-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.78rem;
+        color: #e2e8f0;
+        cursor: pointer;
+      }
+      .mode-switch {
+        display: inline-flex;
+        gap: 4px;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        border-radius: 10px;
+        padding: 3px;
+      }
+      .mode-btn {
+        min-height: 36px;
+        padding: 6px 12px;
+        border-radius: 7px;
+        border: none;
+        background: transparent;
+        color: var(--text-muted);
+        font-size: 0.76rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+      }
+      .mode-btn.active {
+        background: var(--accent);
+        color: #0f172a;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas-wrap" tabindex="0" aria-label="Arena Simulasi Cannon Physics 3D"></div>
+
+    <div class="hud-layer">
+      <div class="top-bar">
+        <section class="panel scenario-card">
+          <div class="mission-header">
+            <div>
+              <div class="game-tools">
+                <a href="/games/cannon" class="back-link">← Kembali ke Detail</a>
+                <button type="button" class="btn btn-util" id="btn-cam-reset">
+                  Reset Kamera
+                </button>
+              </div>
+              <h1 class="mission-title">
+                Cannon Physics — Gerak Parabola 3D
+              </h1>
+            </div>
+            <div class="mode-switch" role="tablist" aria-label="Pilih Mode">
+              <button
+                type="button"
+                class="mode-btn active"
+                id="mode-game-btn"
+                data-mode="game"
+                aria-selected="true"
+              >
+                Mode Game
+              </button>
+              <button
+                type="button"
+                class="mode-btn"
+                id="mode-sim-btn"
+                data-mode="simulation"
+                aria-selected="false"
+              >
+                Simulasi
+              </button>
+            </div>
+          </div>
+          <p class="mission-desc" id="mission-desc">
+            Atur elevasi θ, azimuth φ, dan kecepatan awal v₀ untuk mengenai target merah di lapangan!
+          </p>
+          <div class="reaction-banner" id="status-banner" aria-live="polite">
+            <span id="status-text">Siap menembak · Target pada x = 32,0 m</span>
+            <span class="formula-pill">R = v₀²·sin(2θ)/g</span>
+          </div>
+        </section>
+
+        <section class="panel telemetry-card" aria-label="Telemetri Fisika">
+          <div class="telemetry-title">
+            <span>Telemetri SI</span>
+            <span id="telem-score">Kena: 0 / 0</span>
+          </div>
+          <div class="stat-grid">
+            <div class="stat-box">
+              <span class="stat-label">Jarak Horizontal</span>
+              <span class="stat-val" id="val-range">0.00 m</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Ketinggian (y)</span>
+              <span class="stat-val" id="val-alt">0.00 m</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Puncak Maks</span>
+              <span class="stat-val" id="val-maxh">0.00 m</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Waktu Terbang</span>
+              <span class="stat-val" id="val-time">0.00 s</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Laju Proyektil</span>
+              <span class="stat-val" id="val-speed">0.00 m/s</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Jangkauan Datar</span>
+              <span class="stat-val" id="val-pred">40.77 m</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="bottom-bar">
+        <section class="panel deck-card">
+          <div class="deck-section active" id="panel-game-controls">
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="game-v0">Kecepatan Awal (v₀)</label>
+                <strong id="lbl-game-v0">20.0 m/s</strong>
+              </div>
+              <input id="game-v0" type="range" min="5" max="45" step="0.5" value="20" />
+            </div>
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="game-elev">Sudut Elevasi (θ)</label>
+                <strong id="lbl-game-elev">45°</strong>
+              </div>
+              <input id="game-elev" type="range" min="5" max="85" step="1" value="45" />
+            </div>
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="game-azim">Sudut Azimuth (φ)</label>
+                <strong id="lbl-game-azim">0°</strong>
+              </div>
+              <input id="game-azim" type="range" min="-45" max="45" step="1" value="0" />
+            </div>
+          </div>
+
+          <div class="deck-section" id="panel-sim-controls">
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="sim-v0">Kecepatan Awal (v₀)</label>
+                <strong id="lbl-sim-v0">20.0 m/s</strong>
+              </div>
+              <input id="sim-v0" type="range" min="1" max="50" step="0.5" value="20" />
+            </div>
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="sim-elev">Elevasi (θ)</label>
+                <strong id="lbl-sim-elev">45°</strong>
+              </div>
+              <input id="sim-elev" type="range" min="0" max="85" step="1" value="45" />
+            </div>
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="sim-g">Gravitasi (g)</label>
+                <strong id="lbl-sim-g">9.81 m/s²</strong>
+              </div>
+              <input id="sim-g" type="range" min="1" max="20" step="0.1" value="9.81" />
+            </div>
+            <div class="sub-row">
+              <div class="slider-wrap" style="flex:1 1 130px;">
+                <div class="slider-head">
+                  <label for="sim-mass">Massa (m)</label>
+                  <strong id="lbl-sim-mass">1.0 kg</strong>
+                </div>
+                <input id="sim-mass" type="range" min="0.1" max="10" step="0.1" value="1" />
+              </div>
+              <label class="toggle-label">
+                <input type="checkbox" id="sim-drag" />
+                Hambatan Udara
+              </label>
+            </div>
+            <p class="inline-note" id="sim-pending-note" hidden>
+              Parameter diubah — tekan Reset untuk menerapkan sebelum menembak.
+            </p>
+          </div>
+        </section>
+
+        <section class="panel actions-card">
+          <div class="btn-row">
+            <button type="button" class="btn btn-gas" id="btn-fire">
+              Tembak! (Space)
+            </button>
+            <button type="button" class="btn btn-blue" id="btn-reset">
+              Reset (R)
+            </button>
+            <button type="button" class="btn btn-util" id="btn-newtarget">
+              Target Baru
+            </button>
+          </div>
+          <p class="cam-hint">
+            Seret latar untuk orbit kamera · Gulir untuk zoom · W/S elevasi, A/D azimuth
+          </p>
+        </section>
+      </div>
+    </div>
+
+    <div id="runtime-error" hidden>
+      <h2>Simulasi Cannon 3D tidak dapat dimuat</h2>
+      <p>Pastikan browser mendukung WebGL dan JavaScript aktif.</p>
+      <p><a href="/games/cannon">Kembali ke halaman detail</a></p>
+    </div>
+
+    <script src="../../embedded-games/shared/three-r128.min.js"></script>
+    <script src="./kernel-bundle.js"></script>
+    <script src="./game.js"></script>
+  </body>
+</html>

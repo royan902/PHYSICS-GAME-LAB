@@ -29,13 +29,14 @@ export default function About() {
           Kedua mode Billiard memakai model fisika yang sama, dengan asumsi yang
           dijelaskan.
         </p>
-        <h2>Sedang dibangun, selangkah demi selangkah</h2>
+        <h2>Delapan simulasi fisika interaktif siap dimainkan</h2>
         <p>
           Billiard Physics kini dapat dimainkan: Classic 8-ball lokal dua pemain
           dan Simulation sandbox untuk mempelajari momentum, spin, jump,
           gesekan, serta restitusi. Tiga eksperimen Hukum Newton juga tersedia:
-          Bus Inertia, Gravity Gun, dan Action &amp; Reaction. Empat game
-          roadmap lainnya masih Coming Soon.
+          Bus Inertia, Gravity Gun, dan Action &amp; Reaction, bersama empat
+          simulasi gerak baru: Golf Physics, Rocket Landing, Cannon Physics,
+          serta Ramp Race.
         </p>
         <Link href="/games" className="button primary">
           Explore Games <Arrow />

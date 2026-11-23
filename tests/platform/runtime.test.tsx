@@ -19,6 +19,10 @@ describe("game registry and runtime trust boundaries", () => {
       "newton-first-law",
       "newton-second-law",
       "newton-third-law",
+      "golf",
+      "rocket-landing",
+      "cannon",
+      "ramp-race",
     ]);
     expect(
       games

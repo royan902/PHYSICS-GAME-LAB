@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ramp Race — Energi &amp; Gerak Menggelinding</title>
+    <style>
+      /* SHARED_CSS_PLACEHOLDER */
+      :root {
+        --accent: #a78bfa;
+        --accent-dim: rgba(167, 139, 250, 0.22);
+      }
+      .inline-note {
+        font-size: 0.72rem;
+        color: #fde68a;
+        margin-top: 2px;
+      }
+      .preset-row {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .ball-badge-a {
+        color: #38bdf8;
+      }
+      .ball-badge-b {
+        color: #fbbf24;
+      }
+      .mode-switch {
+        display: inline-flex;
+        gap: 4px;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        border-radius: 10px;
+        padding: 3px;
+      }
+      .mode-btn {
+        min-height: 36px;
+        padding: 6px 12px;
+        border-radius: 7px;
+        border: none;
+        background: transparent;
+        color: var(--text-muted);
+        font-size: 0.76rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+      }
+      .mode-btn.active {
+        background: var(--accent);
+        color: #0f172a;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas-wrap" tabindex="0" aria-label="Arena Simulasi Ramp Race 3D"></div>
+
+    <div class="hud-layer">
+      <div class="top-bar">
+        <section class="panel scenario-card">
+          <div class="mission-header">
+            <div>
+              <div class="game-tools">
+                <a href="/games/ramp-race" class="back-link">← Kembali ke Detail</a>
+                <button type="button" class="btn btn-util" id="btn-cam-reset">
+                  Reset Kamera
+                </button>
+              </div>
+              <h1 class="mission-title">
+                Ramp Race — Energi &amp; Momen Inersia
+              </h1>
+            </div>
+            <div class="mode-switch" role="tablist" aria-label="Pilih Mode">
+              <button
+                type="button"
+                class="mode-btn active"
+                id="mode-game-btn"
+                data-mode="game"
+                aria-selected="true"
+              >
+                Mode Game
+              </button>
+              <button
+                type="button"
+                class="mode-btn"
+                id="mode-sim-btn"
+                data-mode="simulation"
+                aria-selected="false"
+              >
+                Simulasi
+              </button>
+            </div>
+          </div>
+          <p class="mission-desc" id="mission-desc">
+            Bandingkan dua bola pejal menuruni bidang miring: amati bagaimana gesekan &amp; inersia rotasi menentukan pemenang!
+          </p>
+          <div class="reaction-banner" id="status-banner" aria-live="polite">
+            <span id="status-text">Siap dilepas serentak · Panjang lintasan 3,00 m</span>
+            <span class="formula-pill">a_roll = 5/7·g·sin(θ)</span>
+          </div>
+        </section>
+
+        <section class="panel telemetry-card" aria-label="Telemetri Fisika">
+          <div class="telemetry-title">
+            <span>Telemetri SI (Bola A vs B)</span>
+            <span id="telem-time">t = 0.00 s</span>
+          </div>
+          <div class="stat-grid">
+            <div class="stat-box">
+              <span class="stat-label ball-badge-a">Bola A: v / ωr</span>
+              <span class="stat-val" id="val-a-vel">0.00 / 0.00</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label ball-badge-b">Bola B: v / ωr</span>
+              <span class="stat-val" id="val-b-vel">0.00 / 0.00</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label ball-badge-a">Ek Trans / Rot (A)</span>
+              <span class="stat-val" id="val-a-ek">0.00 / 0.00 J</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label ball-badge-b">Ek Trans / Rot (B)</span>
+              <span class="stat-val" id="val-b-ek">0.00 / 0.00 J</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label ball-badge-a">Regime / Finish A</span>
+              <span class="stat-val" id="val-a-fin">siap</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label ball-badge-b">Regime / Finish B</span>
+              <span class="stat-val" id="val-b-fin">siap</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="bottom-bar">
+        <section class="panel deck-card">
+          <div class="deck-section active" id="panel-game-controls">
+            <div class="preset-row" role="group" aria-label="Pilih Tantangan">
+              <button type="button" class="btn btn-util active-toggle" data-preset="mass-radius">
+                Massa &amp; Radius Beda
+              </button>
+              <button type="button" class="btn btn-util" data-preset="roll-vs-slide">
+                Gulir vs Licin (μ=0)
+              </button>
+              <button type="button" class="btn btn-util" data-preset="slip-threshold">
+                Gulir vs Tergelincir
+              </button>
+            </div>
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="game-slope">Kemiringan Bidang (θ)</label>
+                <strong id="lbl-game-slope">20°</strong>
+              </div>
+              <input id="game-slope" type="range" min="5" max="35" step="1" value="20" />
+            </div>
+          </div>
+
+          <div class="deck-section" id="panel-sim-controls">
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="sim-slope">Kemiringan Bidang (θ)</label>
+                <strong id="lbl-sim-slope">20°</strong>
+              </div>
+              <input id="sim-slope" type="range" min="5" max="35" step="1" value="20" />
+            </div>
+            <div class="sub-row">
+              <div class="slider-wrap" style="flex:1 1 130px;">
+                <div class="slider-head">
+                  <label for="sim-ma" class="ball-badge-a">Massa A</label>
+                  <strong id="lbl-sim-ma">1.0 kg</strong>
+                </div>
+                <input id="sim-ma" type="range" min="0.1" max="5" step="0.1" value="1.0" />
+              </div>
+              <div class="slider-wrap" style="flex:1 1 130px;">
+                <div class="slider-head">
+                  <label for="sim-mb" class="ball-badge-b">Massa B</label>
+                  <strong id="lbl-sim-mb">2.5 kg</strong>
+                </div>
+                <input id="sim-mb" type="range" min="0.1" max="5" step="0.1" value="2.5" />
+              </div>
+            </div>
+            <div class="sub-row">
+              <div class="slider-wrap" style="flex:1 1 130px;">
+                <div class="slider-head">
+                  <label for="sim-ra" class="ball-badge-a">Radius A</label>
+                  <strong id="lbl-sim-ra">0.10 m</strong>
+                </div>
+                <input id="sim-ra" type="range" min="0.05" max="0.15" step="0.01" value="0.10" />
+              </div>
+              <div class="slider-wrap" style="flex:1 1 130px;">
+                <div class="slider-head">
+                  <label for="sim-rb" class="ball-badge-b">Radius B</label>
+                  <strong id="lbl-sim-rb">0.08 m</strong>
+                </div>
+                <input id="sim-rb" type="range" min="0.05" max="0.15" step="0.01" value="0.08" />
+              </div>
+            </div>
+            <div class="sub-row">
+              <div class="slider-wrap" style="flex:1 1 130px;">
+                <div class="slider-head">
+                  <label for="sim-mua" class="ball-badge-a">Gesekan μ_A</label>
+                  <strong id="lbl-sim-mua">0.50</strong>
+                </div>
+                <input id="sim-mua" type="range" min="0" max="1" step="0.05" value="0.50" />
+              </div>
+              <div class="slider-wrap" style="flex:1 1 130px;">
+                <div class="slider-head">
+                  <label for="sim-mub" class="ball-badge-b">Gesekan μ_B</label>
+                  <strong id="lbl-sim-mub">0.00</strong>
+                </div>
+                <input id="sim-mub" type="range" min="0" max="1" step="0.05" value="0.00" />
+              </div>
+            </div>
+            <p class="inline-note" id="sim-pending-note" hidden>
+              Parameter diubah — tekan Reset untuk menerapkan sebelum melepas bola.
+            </p>
+          </div>
+        </section>
+
+        <section class="panel actions-card">
+          <div class="btn-row">
+            <button type="button" class="btn btn-gas" id="btn-launch">
+              Lepas Bola! (Space)
+            </button>
+            <button type="button" class="btn btn-blue" id="btn-reset">
+              Reset (R)
+            </button>
+          </div>
+          <p class="cam-hint">
+            Seret latar untuk orbit kamera · Gulir untuk zoom · Amati perubahan Ep → Ek translasi + rotasi
+          </p>
+        </section>
+      </div>
+    </div>
+
+    <div id="runtime-error" hidden>
+      <h2>Simulasi Ramp Race 3D tidak dapat dimuat</h2>
+      <p>Pastikan browser mendukung WebGL dan JavaScript aktif.</p>
+      <p><a href="/games/ramp-race">Kembali ke halaman detail</a></p>
+    </div>
+
+    <script src="../../embedded-games/shared/three-r128.min.js"></script>
+    <script src="./kernel-bundle.js"></script>
+    <script src="./game.js"></script>
+  </body>
+</html>

@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rocket Landing — Dorongan &amp; Gravitasi</title>
+    <style>
+      /* SHARED_CSS_PLACEHOLDER */
+      :root {
+        --accent: #38bdf8;
+        --accent-dim: rgba(56, 189, 248, 0.2);
+      }
+      #rocket-canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .inline-note {
+        font-size: 0.72rem;
+        color: #fde68a;
+        margin-top: 2px;
+      }
+      .mode-switch {
+        display: inline-flex;
+        gap: 4px;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        border-radius: 10px;
+        padding: 3px;
+      }
+      .mode-btn {
+        min-height: 36px;
+        padding: 6px 12px;
+        border-radius: 7px;
+        border: none;
+        background: transparent;
+        color: var(--text-muted);
+        font-size: 0.76rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+      }
+      .mode-btn.active {
+        background: var(--accent);
+        color: #0f172a;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas-wrap" tabindex="0" aria-label="Arena Simulasi Rocket Landing 2D">
+      <canvas id="rocket-canvas"></canvas>
+    </div>
+
+    <div class="hud-layer">
+      <div class="top-bar">
+        <section class="panel scenario-card">
+          <div class="mission-header">
+            <div>
+              <div class="game-tools">
+                <a href="/games/rocket-landing" class="back-link">← Kembali ke Detail</a>
+                <button type="button" class="btn btn-util" id="btn-pause">
+                  Jeda
+                </button>
+              </div>
+              <h1 class="mission-title">
+                Rocket Landing — Dorongan &amp; Gravitasi
+              </h1>
+            </div>
+            <div class="mode-switch" role="tablist" aria-label="Pilih Mode">
+              <button
+                type="button"
+                class="mode-btn active"
+                id="mode-game-btn"
+                data-mode="game"
+                aria-selected="true"
+              >
+                Mode Game
+              </button>
+              <button
+                type="button"
+                class="mode-btn"
+                id="mode-sim-btn"
+                data-mode="simulation"
+                aria-selected="false"
+              >
+                Simulasi
+              </button>
+            </div>
+          </div>
+          <p class="mission-desc" id="mission-desc">
+            Daratkan kedua kaki roket di landasan dengan |vy| ≤ 2,0 m/s, |vx| ≤ 1,0 m/s, dan kemiringan ≤ 5°.
+          </p>
+          <div class="reaction-banner" id="status-banner" aria-live="polite">
+            <span id="status-text">Sedang turun — kendalikan dorongan &amp; sikap roket</span>
+            <span class="formula-pill">ΣF = T·û − m·g</span>
+          </div>
+        </section>
+
+        <section class="panel telemetry-card" aria-label="Telemetri Fisika">
+          <div class="telemetry-title">
+            <span>Telemetri SI</span>
+            <span id="telem-mass">Massa: 120.0 kg</span>
+          </div>
+          <div class="stat-grid">
+            <div class="stat-box">
+              <span class="stat-label">Ketinggian (h)</span>
+              <span class="stat-val" id="val-alt">24.5 m</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Kecepatan vy / vx</span>
+              <span class="stat-val" id="val-vel">-1.5 / 1.2 m/s</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Sudut (θ)</span>
+              <span class="stat-val" id="val-theta">4.6°</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Bahan Bakar</span>
+              <span class="stat-val" id="val-fuel">20.0 kg</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Gaya Dorong (T)</span>
+              <span class="stat-val" id="val-thrust">0 N</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Berat (m·g)</span>
+              <span class="stat-val" id="val-weight">1177 N</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="bottom-bar">
+        <section class="panel deck-card">
+          <div class="deck-section active" id="panel-game-controls">
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="game-throttle">Throttle Dorongan Manual</label>
+                <strong id="lbl-game-throttle">0%</strong>
+              </div>
+              <input
+                id="game-throttle"
+                type="range"
+                min="0"
+                max="100"
+                step="2"
+                value="0"
+              />
+            </div>
+            <div class="btn-row">
+              <button type="button" class="btn btn-util" id="btn-rot-left">
+                ↺ Putar Kiri (A)
+              </button>
+              <button type="button" class="btn btn-gas" id="btn-thrust-hold">
+                🔥 Dorong (W / Space)
+              </button>
+              <button type="button" class="btn btn-util" id="btn-rot-right">
+                ↻ Putar Kanan (D)
+              </button>
+            </div>
+          </div>
+
+          <div class="deck-section" id="panel-sim-controls">
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="sim-gravity">Gravitasi (g)</label>
+                <strong id="lbl-sim-g">9.81 m/s²</strong>
+              </div>
+              <input
+                id="sim-gravity"
+                type="range"
+                min="1"
+                max="20"
+                step="0.1"
+                value="9.81"
+              />
+            </div>
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="sim-thrust">Dorongan Maks (T_max)</label>
+                <strong id="lbl-sim-thrust">2000 N</strong>
+              </div>
+              <input
+                id="sim-thrust"
+                type="range"
+                min="1000"
+                max="4000"
+                step="50"
+                value="2000"
+              />
+            </div>
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="sim-fuel">Bahan Bakar Awal</label>
+                <strong id="lbl-sim-fuel">20 kg</strong>
+              </div>
+              <input
+                id="sim-fuel"
+                type="range"
+                min="0"
+                max="50"
+                step="1"
+                value="20"
+              />
+            </div>
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="sim-throttle">Throttle Konstan</label>
+                <strong id="lbl-sim-throttle">0%</strong>
+              </div>
+              <input
+                id="sim-throttle"
+                type="range"
+                min="0"
+                max="100"
+                step="2"
+                value="0"
+              />
+            </div>
+            <p class="inline-note" id="sim-pending-note" hidden>
+              Parameter diubah — tekan Reset untuk menerapkan konfigurasi baru.
+            </p>
+          </div>
+        </section>
+
+        <section class="panel actions-card">
+          <div class="btn-row">
+            <button type="button" class="btn btn-blue" id="btn-reset">
+              Reset (R)
+            </button>
+            <button type="button" class="btn btn-purple" id="btn-hover-preset">
+              Pasang Hover (T ≈ m·g)
+            </button>
+          </div>
+          <p class="cam-hint">
+            Tahan W/Space atau tombol Dorong · A/D untuk miringkan roket · R untuk ulang
+          </p>
+        </section>
+      </div>
+    </div>
+
+    <div id="runtime-error" hidden>
+      <h2>Simulasi Rocket Landing tidak dapat dimuat</h2>
+      <p>Pastikan HTML5 Canvas dan JavaScript aktif pada browser.</p>
+      <p><a href="/games/rocket-landing">Kembali ke halaman detail</a></p>
+    </div>
+
+    <script src="./kernel-bundle.js"></script>
+    <script src="./game.js"></script>
+  </body>
+</html>

@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 export default defineConfig({
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   test: {
+    isolate: false,
     include: ["tests/physics/**/*.test.ts", "tests/platform/**/*.test.tsx"],
   },
 });

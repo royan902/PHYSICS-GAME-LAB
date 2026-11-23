@@ -1,0 +1,1572 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rocket Landing — Dorongan &amp; Gravitasi</title>
+    <style>
+      :root {
+  --bg-dark: #070b14;
+  --panel-bg: rgba(15, 23, 42, 0.86);
+  --panel-border: rgba(148, 163, 184, 0.24);
+  --accent: #38bdf8;
+  --accent-glow: rgba(56, 189, 248, 0.35);
+  --green: #4ade80;
+  --red: #f87171;
+  --amber: #fbbf24;
+  --purple: #c084fc;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family:
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body {
+  overflow: hidden;
+  background: var(--bg-dark);
+  color: var(--text-main);
+  width: 100vw;
+  height: 100vh;
+}
+
+#canvas-wrap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+#canvas-wrap:active {
+  cursor: grabbing;
+}
+
+.floating-badge {
+  position: absolute;
+  pointer-events: none;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transform: translate(-50%, -100%);
+  transition: opacity 0.15s;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  z-index: 5;
+}
+.badge-blue {
+  background: rgba(12, 74, 110, 0.92);
+  color: #7dd3fc;
+  border: 1px solid #38bdf8;
+}
+.badge-amber {
+  background: rgba(120, 53, 15, 0.92);
+  color: #fde68a;
+  border: 1px solid #fbbf24;
+}
+.badge-red {
+  background: rgba(127, 29, 29, 0.92);
+  color: #fecaca;
+  border: 1px solid #f87171;
+}
+.badge-green {
+  background: rgba(20, 83, 45, 0.92);
+  color: #bbf7d0;
+  border: 1px solid #4ade80;
+}
+
+.hud-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px;
+  z-index: 10;
+}
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.bottom-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.panel {
+  background: var(--panel-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  pointer-events: auto;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+}
+
+.scenario-card {
+  flex: 1 1 380px;
+  max-width: 520px;
+}
+
+.mission-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.mission-title {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.formula-pill {
+  font-family: "Consolas", monospace;
+  font-size: 0.76rem;
+  background: rgba(56, 189, 248, 0.15);
+  color: #bae6fd;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  white-space: nowrap;
+}
+
+.mission-desc {
+  font-size: 0.79rem;
+  line-height: 1.42;
+  color: #cbd5e1;
+  margin-bottom: 8px;
+}
+
+.reaction-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: rgba(251, 191, 36, 0.14);
+  color: var(--amber);
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  transition: all 0.2s;
+}
+.reaction-banner.danger {
+  background: rgba(239, 68, 68, 0.22);
+  color: #fca5a5;
+  border-color: #f87171;
+}
+.reaction-banner.good {
+  background: rgba(34, 197, 94, 0.2);
+  color: #86efac;
+  border-color: #4ade80;
+}
+
+.telemetry-card {
+  min-width: 240px;
+  flex: 0 1 280px;
+}
+
+.telemetry-title {
+  font-size: 0.73rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.stat-box {
+  background: rgba(15, 23, 42, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 5px 8px;
+}
+.stat-label {
+  font-size: 0.67rem;
+  color: var(--text-muted);
+  display: block;
+}
+.stat-val {
+  font-family: "Consolas", monospace;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.deck-card {
+  flex: 1 1 320px;
+  max-width: 440px;
+}
+
+.deck-section {
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+}
+.deck-section.active {
+  display: flex;
+}
+
+.sub-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.slider-wrap {
+  width: 100%;
+}
+.slider-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.76rem;
+  margin-bottom: 3px;
+  color: #e2e8f0;
+}
+.slider-head strong {
+  color: var(--accent);
+  font-family: "Consolas", monospace;
+}
+input[type="range"] {
+  width: 100%;
+  height: 5px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.actions-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  font-weight: 700;
+  font-size: 0.81rem;
+  cursor: pointer;
+  transition:
+    transform 0.1s,
+    filter 0.15s,
+    box-shadow 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #fff;
+}
+.btn:hover {
+  filter: brightness(1.1);
+}
+.btn:active {
+  transform: scale(0.95);
+}
+
+.btn-gas {
+  background: linear-gradient(135deg, #22c55e, #15803d);
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35);
+}
+.btn-brake {
+  background: linear-gradient(135deg, #f59e0b, #b45309);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
+}
+.btn-panic {
+  background: linear-gradient(135deg, #ef4444, #991b1b);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+}
+.btn-blue {
+  background: linear-gradient(135deg, #0ea5e9, #0369a1);
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35);
+}
+.btn-purple {
+  background: linear-gradient(135deg, #a855f7, #6b21a8);
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35);
+}
+.btn-util {
+  background: rgba(51, 65, 85, 0.88);
+  color: #e2e8f0;
+  padding: 7px 11px;
+  font-size: 0.75rem;
+}
+.btn-util.active-toggle {
+  background: rgba(22, 101, 52, 0.9);
+  border-color: #4ade80;
+  color: #bbf7d0;
+}
+
+.cam-hint {
+  font-size: 0.69rem;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+@media (max-width: 720px) {
+  .scenario-card,
+  .telemetry-card,
+  .deck-card,
+  .actions-card {
+    max-width: 100%;
+    flex: 1 1 100%;
+  }
+  .cam-hint {
+    display: none;
+  }
+}
+
+body {
+  height: 100dvh;
+}
+#canvas-wrap {
+  touch-action: none;
+  outline-offset: -4px;
+}
+button,
+input {
+  touch-action: manipulation;
+}
+button {
+  min-height: 44px;
+}
+button:focus-visible,
+input:focus-visible,
+a:focus-visible,
+#canvas-wrap:focus-visible {
+  outline: 3px solid #7dd3fc;
+  outline-offset: 3px;
+}
+.mission-header {
+  flex-wrap: wrap;
+}
+.game-tools {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+  align-items: center;
+}
+.game-tools a {
+  color: #bae6fd;
+  padding: 8px;
+  font-size: 12px;
+}
+.game-tools button {
+  font-size: 12px;
+  padding: 6px 10px;
+}
+#runtime-error {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: #070b14;
+  padding: 32px;
+  text-align: center;
+  align-content: center;
+}
+#runtime-error[hidden] {
+  display: none;
+}
+#runtime-error a {
+  color: #7dd3fc;
+}
+@media (max-width: 720px), (max-height: 600px) {
+  .hud-layer {
+    display: grid;
+    grid-template-rows: auto minmax(80px, 1fr) auto;
+    padding: 8px;
+    gap: 8px;
+  }
+  .top-bar {
+    grid-row: 1;
+    max-height: 30dvh;
+    overflow: auto;
+  }
+  .scenario-card {
+    flex: 1 1 100%;
+    padding: 8px 10px;
+  }
+  .mission-desc,
+  .reaction-banner {
+    font-size: 11px;
+  }
+  .mission-title {
+    font-size: 12px;
+  }
+  .formula-pill {
+    font-size: 10px;
+  }
+  .telemetry-card {
+    flex: 1 1 100%;
+    padding: 6px 10px;
+  }
+  .telemetry-title {
+    display: none;
+  }
+  .stat-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+  }
+  .stat-label {
+    font-size: 9px;
+  }
+  .stat-val {
+    font-size: 11px;
+  }
+  .stat-box {
+    padding: 4px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .bottom-bar {
+    grid-row: 3;
+    max-height: 30dvh;
+    overflow: auto;
+    gap: 6px;
+  }
+  .deck-card,
+  .actions-card {
+    padding: 8px;
+    flex: 1 1 100%;
+  }
+  .btn-row {
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    min-height: 44px;
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+  .sub-row {
+    flex-wrap: wrap;
+  }
+  .game-tools {
+    margin: 0;
+  }
+  .floating-badge {
+    max-width: 90vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
+@media (max-width: 720px), (max-height: 600px) {
+  .top-bar,
+  .bottom-bar {
+    display: block;
+    pointer-events: auto;
+  }
+  .top-bar > .panel + .panel,
+  .bottom-bar > .panel + .panel {
+    margin-top: 6px;
+  }
+}
+html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+body {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.floating-badge {
+  position: fixed;
+  max-width: min(300px, 90vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+      :root {
+        --accent: #38bdf8;
+        --accent-dim: rgba(56, 189, 248, 0.2);
+      }
+      #rocket-canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .inline-note {
+        font-size: 0.72rem;
+        color: #fde68a;
+        margin-top: 2px;
+      }
+      .mode-switch {
+        display: inline-flex;
+        gap: 4px;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        border-radius: 10px;
+        padding: 3px;
+      }
+      .mode-btn {
+        min-height: 36px;
+        padding: 6px 12px;
+        border-radius: 7px;
+        border: none;
+        background: transparent;
+        color: var(--text-muted);
+        font-size: 0.76rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+      }
+      .mode-btn.active {
+        background: var(--accent);
+        color: #0f172a;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas-wrap" tabindex="0" aria-label="Arena Simulasi Rocket Landing 2D">
+      <canvas id="rocket-canvas"></canvas>
+    </div>
+
+    <div class="hud-layer">
+      <div class="top-bar">
+        <section class="panel scenario-card">
+          <div class="mission-header">
+            <div>
+              <div class="game-tools">
+                <a href="/games/rocket-landing" class="back-link">← Kembali ke Detail</a>
+                <button type="button" class="btn btn-util" id="btn-pause">
+                  Jeda
+                </button>
+              </div>
+              <h1 class="mission-title">
+                Rocket Landing — Dorongan &amp; Gravitasi
+              </h1>
+            </div>
+            <div class="mode-switch" role="tablist" aria-label="Pilih Mode">
+              <button
+                type="button"
+                class="mode-btn active"
+                id="mode-game-btn"
+                data-mode="game"
+                aria-selected="true"
+              >
+                Mode Game
+              </button>
+              <button
+                type="button"
+                class="mode-btn"
+                id="mode-sim-btn"
+                data-mode="simulation"
+                aria-selected="false"
+              >
+                Simulasi
+              </button>
+            </div>
+          </div>
+          <p class="mission-desc" id="mission-desc">
+            Daratkan kedua kaki roket di landasan dengan |vy| ≤ 2,0 m/s, |vx| ≤ 1,0 m/s, dan kemiringan ≤ 5°.
+          </p>
+          <div class="reaction-banner" id="status-banner" aria-live="polite">
+            <span id="status-text">Sedang turun — kendalikan dorongan &amp; sikap roket</span>
+            <span class="formula-pill">ΣF = T·û − m·g</span>
+          </div>
+        </section>
+
+        <section class="panel telemetry-card" aria-label="Telemetri Fisika">
+          <div class="telemetry-title">
+            <span>Telemetri SI</span>
+            <span id="telem-mass">Massa: 120.0 kg</span>
+          </div>
+          <div class="stat-grid">
+            <div class="stat-box">
+              <span class="stat-label">Ketinggian (h)</span>
+              <span class="stat-val" id="val-alt">24.5 m</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Kecepatan vy / vx</span>
+              <span class="stat-val" id="val-vel">-1.5 / 1.2 m/s</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Sudut (θ)</span>
+              <span class="stat-val" id="val-theta">4.6°</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Bahan Bakar</span>
+              <span class="stat-val" id="val-fuel">20.0 kg</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Gaya Dorong (T)</span>
+              <span class="stat-val" id="val-thrust">0 N</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Berat (m·g)</span>
+              <span class="stat-val" id="val-weight">1177 N</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="bottom-bar">
+        <section class="panel deck-card">
+          <div class="deck-section active" id="panel-game-controls">
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="game-throttle">Throttle Dorongan Manual</label>
+                <strong id="lbl-game-throttle">0%</strong>
+              </div>
+              <input
+                id="game-throttle"
+                type="range"
+                min="0"
+                max="100"
+                step="2"
+                value="0"
+              />
+            </div>
+            <div class="btn-row">
+              <button type="button" class="btn btn-util" id="btn-rot-left">
+                ↺ Putar Kiri (A)
+              </button>
+              <button type="button" class="btn btn-gas" id="btn-thrust-hold">
+                🔥 Dorong (W / Space)
+              </button>
+              <button type="button" class="btn btn-util" id="btn-rot-right">
+                ↻ Putar Kanan (D)
+              </button>
+            </div>
+          </div>
+
+          <div class="deck-section" id="panel-sim-controls">
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="sim-gravity">Gravitasi (g)</label>
+                <strong id="lbl-sim-g">9.81 m/s²</strong>
+              </div>
+              <input
+                id="sim-gravity"
+                type="range"
+                min="1"
+                max="20"
+                step="0.1"
+                value="9.81"
+              />
+            </div>
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="sim-thrust">Dorongan Maks (T_max)</label>
+                <strong id="lbl-sim-thrust">2000 N</strong>
+              </div>
+              <input
+                id="sim-thrust"
+                type="range"
+                min="1000"
+                max="4000"
+                step="50"
+                value="2000"
+              />
+            </div>
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="sim-fuel">Bahan Bakar Awal</label>
+                <strong id="lbl-sim-fuel">20 kg</strong>
+              </div>
+              <input
+                id="sim-fuel"
+                type="range"
+                min="0"
+                max="50"
+                step="1"
+                value="20"
+              />
+            </div>
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <label for="sim-throttle">Throttle Konstan</label>
+                <strong id="lbl-sim-throttle">0%</strong>
+              </div>
+              <input
+                id="sim-throttle"
+                type="range"
+                min="0"
+                max="100"
+                step="2"
+                value="0"
+              />
+            </div>
+            <p class="inline-note" id="sim-pending-note" hidden>
+              Parameter diubah — tekan Reset untuk menerapkan konfigurasi baru.
+            </p>
+          </div>
+        </section>
+
+        <section class="panel actions-card">
+          <div class="btn-row">
+            <button type="button" class="btn btn-blue" id="btn-reset">
+              Reset (R)
+            </button>
+            <button type="button" class="btn btn-purple" id="btn-hover-preset">
+              Pasang Hover (T ≈ m·g)
+            </button>
+          </div>
+          <p class="cam-hint">
+            Tahan W/Space atau tombol Dorong · A/D untuk miringkan roket · R untuk ulang
+          </p>
+        </section>
+      </div>
+    </div>
+
+    <div id="runtime-error" hidden>
+      <h2>Simulasi Rocket Landing tidak dapat dimuat</h2>
+      <p>Pastikan HTML5 Canvas dan JavaScript aktif pada browser.</p>
+      <p><a href="/games/rocket-landing">Kembali ke halaman detail</a></p>
+    </div>
+
+    <script>
+(function (global) {
+/**
+ * Rocket Landing kernel (2D vertical plane, X right, Y up, SI units).
+ * theta = 0 points along +Y, CCW positive: thrust unit vector is (-sin(theta), cos(theta)).
+ */
+
+const ROCKET_DT = 1 / 120;
+
+const ROCKET_DEFAULTS = Object.freeze({
+  dryMass: 100,
+  fuelMass: 20,
+  maxThrust: 2000,
+  maxFuelFlow: 1.0,
+  inertia: 100,
+  maxTorque: 100,
+  gravity: 9.81,
+  legOffset: 1.5,
+  footHalfSpan: 0.9,
+  padCenterX: 0,
+  padHalfWidth: 3.5,
+  padY: 0,
+  startX: -4,
+  startY: 26,
+  startVx: 1.2,
+  startVy: -1.5,
+  startTheta: 0.08,
+  startOmega: 0,
+});
+
+const LANDING_LIMITS = Object.freeze({
+  maxAbsVy: 2.0,
+  maxAbsVx: 1.0,
+  maxAbsThetaRad: (5 * Math.PI) / 180,
+  maxAbsOmega: 0.2,
+});
+
+function clampNumber(value, min, max) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return min;
+  return Math.min(max, Math.max(min, num));
+}
+
+function clampRocketParams(raw = {}) {
+  return {
+    dryMass: clampNumber(raw.dryMass ?? ROCKET_DEFAULTS.dryMass, 40, 300),
+    initialFuelMass: clampNumber(
+      raw.fuelMass ?? raw.initialFuelMass ?? ROCKET_DEFAULTS.fuelMass,
+      0,
+      50,
+    ),
+    maxThrust: clampNumber(
+      raw.maxThrust ?? ROCKET_DEFAULTS.maxThrust,
+      1000,
+      4000,
+    ),
+    maxFuelFlow: clampNumber(
+      raw.maxFuelFlow ?? ROCKET_DEFAULTS.maxFuelFlow,
+      0,
+      5,
+    ),
+    inertia: clampNumber(raw.inertia ?? ROCKET_DEFAULTS.inertia, 20, 400),
+    maxTorque: clampNumber(raw.maxTorque ?? ROCKET_DEFAULTS.maxTorque, 20, 300),
+    gravity: clampNumber(raw.gravity ?? ROCKET_DEFAULTS.gravity, 1, 20),
+    legOffset: clampNumber(raw.legOffset ?? ROCKET_DEFAULTS.legOffset, 0.5, 4),
+    footHalfSpan: clampNumber(
+      raw.footHalfSpan ?? ROCKET_DEFAULTS.footHalfSpan,
+      0.2,
+      2.5,
+    ),
+    padCenterX: Number(raw.padCenterX ?? ROCKET_DEFAULTS.padCenterX),
+    padHalfWidth: clampNumber(
+      raw.padHalfWidth ?? ROCKET_DEFAULTS.padHalfWidth,
+      1.5,
+      8,
+    ),
+    padY: Number(raw.padY ?? ROCKET_DEFAULTS.padY),
+  };
+}
+
+function createRocketState(options = {}) {
+  const params = clampRocketParams(options.params ?? options);
+  const startY =
+    options.y ??
+    (options.altitude !== undefined
+      ? params.padY + params.legOffset + Number(options.altitude)
+      : ROCKET_DEFAULTS.startY);
+
+  return {
+    mode: options.mode === "simulation" ? "simulation" : "game",
+    params,
+    x: Number(options.x ?? ROCKET_DEFAULTS.startX),
+    y: Number(startY),
+    vx: Number(options.vx ?? ROCKET_DEFAULTS.startVx),
+    vy: Number(options.vy ?? ROCKET_DEFAULTS.startVy),
+    theta: Number(options.theta ?? ROCKET_DEFAULTS.startTheta),
+    omega: Number(options.omega ?? ROCKET_DEFAULTS.startOmega),
+    fuelMass: params.initialFuelMass,
+    throttle: clampNumber(options.throttle ?? 0, 0, 1),
+    torqueInput: clampNumber(options.torqueInput ?? 0, -1, 1),
+    currentThrust: 0,
+    time: 0,
+    status: "flying",
+    contactTelemetry: null,
+    crashReasons: [],
+    trail: [],
+  };
+}
+
+function evaluateLanding(contact, params) {
+  const reasons = [];
+  const leftFootX = contact.x - params.footHalfSpan * Math.cos(contact.theta);
+  const rightFootX = contact.x + params.footHalfSpan * Math.cos(contact.theta);
+  const padMinX = params.padCenterX - params.padHalfWidth;
+  const padMaxX = params.padCenterX + params.padHalfWidth;
+  const bothFeetOnPad = leftFootX >= padMinX && rightFootX <= padMaxX;
+
+  if (!bothFeetOnPad) reasons.push("outside-pad");
+  if (Math.abs(contact.vy) > LANDING_LIMITS.maxAbsVy)
+    reasons.push("vertical-speed");
+  if (Math.abs(contact.vx) > LANDING_LIMITS.maxAbsVx)
+    reasons.push("horizontal-speed");
+  if (Math.abs(contact.theta) > LANDING_LIMITS.maxAbsThetaRad)
+    reasons.push("tilt-angle");
+  if (Math.abs(contact.omega) > LANDING_LIMITS.maxAbsOmega)
+    reasons.push("angular-rate");
+
+  return { safe: reasons.length === 0, reasons, bothFeetOnPad };
+}
+
+function stepRocket(state, input = {}, dt = ROCKET_DT) {
+  if (state.status !== "flying") return state;
+
+  const {
+    dryMass,
+    maxThrust,
+    maxFuelFlow,
+    inertia,
+    maxTorque,
+    gravity,
+    legOffset,
+    padY,
+  } = state.params;
+
+  const throttle = clampNumber(input.throttle ?? state.throttle ?? 0, 0, 1);
+  const torqueInput = clampNumber(
+    input.torqueCommand ?? input.torqueInput ?? state.torqueInput ?? 0,
+    -1,
+    1,
+  );
+  state.throttle = throttle;
+  state.torqueInput = torqueInput;
+
+  const fuelBefore = Math.max(0, state.fuelMass);
+  const desiredBurn = throttle * maxFuelFlow * dt;
+  let actualBurn = 0;
+  let thrust = 0;
+
+  if (throttle > 0) {
+    if (desiredBurn > 0) {
+      actualBurn = Math.min(fuelBefore, desiredBurn);
+      const burnFraction = actualBurn / desiredBurn;
+      thrust = throttle * maxThrust * burnFraction;
+    } else {
+      // Allows deterministic mass-constant hover/thrust fixtures when maxFuelFlow = 0.
+      thrust = throttle * maxThrust;
+    }
+  }
+
+  const fuelAfter = Math.max(0, fuelBefore - actualBurn);
+  const effectiveMass = dryMass + 0.5 * (fuelBefore + fuelAfter);
+
+  const prevX = state.x;
+  const prevY = state.y;
+  const prevVx = state.vx;
+  const prevVy = state.vy;
+  const prevTheta = state.theta;
+  const prevOmega = state.omega;
+
+  const alpha = (torqueInput * maxTorque) / inertia;
+  const thetaMid = prevTheta + prevOmega * 0.5 * dt + 0.125 * alpha * dt * dt;
+  const thetaNext = prevTheta + prevOmega * dt + 0.5 * alpha * dt * dt;
+  const omegaNext = prevOmega + alpha * dt;
+
+  const ux = -Math.sin(thetaMid);
+  const uy = Math.cos(thetaMid);
+  const ax = (thrust * ux) / effectiveMass;
+  const ay = (thrust * uy) / effectiveMass - gravity;
+
+  const nextX = prevX + prevVx * dt + 0.5 * ax * dt * dt;
+  const nextY = prevY + prevVy * dt + 0.5 * ay * dt * dt;
+  const nextVx = prevVx + ax * dt;
+  const nextVy = prevVy + ay * dt;
+
+  state.fuelMass = fuelAfter;
+  state.currentThrust = thrust;
+
+  const prevFootY = prevY - legOffset;
+  const nextFootY = nextY - legOffset;
+
+  if (nextFootY <= padY) {
+    const denom = prevFootY - nextFootY;
+    const tFrac =
+      denom > 1e-9 ? clampNumber((prevFootY - padY) / denom, 0, 1) : 1;
+    const contact = {
+      x: prevX + (nextX - prevX) * tFrac,
+      y: padY + legOffset,
+      vx: prevVx + (nextVx - prevVx) * tFrac,
+      vy: prevVy + (nextVy - prevVy) * tFrac,
+      theta: prevTheta + (thetaNext - prevTheta) * tFrac,
+      omega: prevOmega + (omegaNext - prevOmega) * tFrac,
+      time: state.time + dt * tFrac,
+    };
+    const verdict = evaluateLanding(contact, state.params);
+
+    state.x = contact.x;
+    state.y = contact.y;
+    state.vx = 0;
+    state.vy = 0;
+    state.theta = contact.theta;
+    state.omega = 0;
+    state.time = contact.time;
+    state.currentThrust = 0;
+    state.status = verdict.safe ? "landed" : "crashed";
+    state.crashReasons = verdict.reasons;
+    state.contactTelemetry = contact;
+    return state;
+  }
+
+  state.x = nextX;
+  state.y = nextY;
+  state.vx = nextVx;
+  state.vy = nextVy;
+  state.theta = thetaNext;
+  state.omega = omegaNext;
+  state.time += dt;
+
+  return state;
+}
+
+function getRocketTelemetry(state) {
+  const { dryMass, gravity, legOffset, padY } = state.params;
+  const totalMass = dryMass + state.fuelMass;
+  const weight = totalMass * gravity;
+  const altitude = Math.max(0, state.y - legOffset - padY);
+  const speed = Math.hypot(state.vx, state.vy);
+  const thetaDeg = (state.theta * 180) / Math.PI;
+  const hoverThrottle = Math.min(1, weight / state.params.maxThrust);
+  return {
+    altitude,
+    vx: state.vx,
+    vy: state.vy,
+    speed,
+    thetaDeg,
+    omega: state.omega,
+    fuelMass: state.fuelMass,
+    totalMass,
+    thrust: state.currentThrust,
+    weight,
+    netVerticalForce:
+      state.currentThrust * Math.cos(state.theta) - weight,
+    hoverThrottle,
+    status: state.status,
+    contactTelemetry: state.contactTelemetry,
+    crashReasons: state.crashReasons,
+  };
+}
+
+  global.MotionKernel = {
+    ROCKET_DT,
+    ROCKET_DEFAULTS,
+    LANDING_LIMITS,
+    clampRocketParams,
+    createRocketState,
+    evaluateLanding,
+    stepRocket,
+    getRocketTelemetry
+  };
+})(window);
+
+</script>
+    <script>
+(function () {
+  "use strict";
+
+  const errorScreen = document.getElementById("runtime-error");
+  const canvas = document.getElementById("rocket-canvas");
+  const ctx = canvas ? canvas.getContext("2d") : null;
+  if (!canvas || !ctx || !window.MotionKernel) {
+    if (errorScreen) errorScreen.hidden = false;
+    return;
+  }
+
+  if (window.self !== window.top) {
+    const backLink = document.querySelector(".game-tools .back-link");
+    if (backLink) backLink.hidden = true;
+  }
+
+  const K = window.MotionKernel;
+  const wrap = document.getElementById("canvas-wrap");
+
+  const ui = {
+    modeGameBtn: document.getElementById("mode-game-btn"),
+    modeSimBtn: document.getElementById("mode-sim-btn"),
+    panelGame: document.getElementById("panel-game-controls"),
+    panelSim: document.getElementById("panel-sim-controls"),
+    missionDesc: document.getElementById("mission-desc"),
+    statusBanner: document.getElementById("status-banner"),
+    statusText: document.getElementById("status-text"),
+    telemMass: document.getElementById("telem-mass"),
+    valAlt: document.getElementById("val-alt"),
+    valVel: document.getElementById("val-vel"),
+    valTheta: document.getElementById("val-theta"),
+    valFuel: document.getElementById("val-fuel"),
+    valThrust: document.getElementById("val-thrust"),
+    valWeight: document.getElementById("val-weight"),
+    gameThrottle: document.getElementById("game-throttle"),
+    lblGameThrottle: document.getElementById("lbl-game-throttle"),
+    btnRotLeft: document.getElementById("btn-rot-left"),
+    btnRotRight: document.getElementById("btn-rot-right"),
+    btnThrustHold: document.getElementById("btn-thrust-hold"),
+    simGravity: document.getElementById("sim-gravity"),
+    simThrust: document.getElementById("sim-thrust"),
+    simFuel: document.getElementById("sim-fuel"),
+    simThrottle: document.getElementById("sim-throttle"),
+    lblSimG: document.getElementById("lbl-sim-g"),
+    lblSimThrust: document.getElementById("lbl-sim-thrust"),
+    lblSimFuel: document.getElementById("lbl-sim-fuel"),
+    lblSimThrottle: document.getElementById("lbl-sim-throttle"),
+    simPendingNote: document.getElementById("sim-pending-note"),
+    btnPause: document.getElementById("btn-pause"),
+    btnReset: document.getElementById("btn-reset"),
+    btnHoverPreset: document.getElementById("btn-hover-preset"),
+  };
+
+  let activeMode = "game";
+  let paused = false;
+  let pendingSimParams = null;
+
+  const held = {
+    thrust: false,
+    left: false,
+    right: false,
+  };
+
+  // Precomputed stars for background
+  const stars = Array.from({ length: 65 }, (_, i) => ({
+    rx: ((i * 73) % 100) / 100,
+    ry: ((i * 41) % 75) / 100,
+    size: 1 + (i % 3) * 0.7,
+    alpha: 0.35 + (i % 5) * 0.12,
+  }));
+
+  function readSimInputs() {
+    return {
+      gravity: parseFloat(ui.simGravity.value),
+      maxThrust: parseFloat(ui.simThrust.value),
+      fuelMass: parseFloat(ui.simFuel.value),
+    };
+  }
+
+  let simState = createFreshState();
+
+  function createFreshState() {
+    if (activeMode === "simulation") {
+      const cfg = pendingSimParams || readSimInputs();
+      pendingSimParams = null;
+      ui.simPendingNote.hidden = true;
+      return K.createRocketState({
+        mode: "simulation",
+        x: 0,
+        y: 24,
+        vx: 0,
+        vy: 0,
+        theta: 0,
+        omega: 0,
+        gravity: cfg.gravity,
+        maxThrust: cfg.maxThrust,
+        fuelMass: cfg.fuelMass,
+      });
+    }
+    return K.createRocketState({
+      mode: "game",
+      x: -3.5,
+      y: 26,
+      vx: 1.0,
+      vy: -1.4,
+      theta: 0.06,
+      omega: 0,
+    });
+  }
+
+  function syncLabels() {
+    ui.lblGameThrottle.textContent = `${ui.gameThrottle.value}%`;
+    ui.lblSimG.textContent = `${parseFloat(ui.simGravity.value).toFixed(2)} m/s²`;
+    ui.lblSimThrust.textContent = `${ui.simThrust.value} N`;
+    ui.lblSimFuel.textContent = `${ui.simFuel.value} kg`;
+    ui.lblSimThrottle.textContent = `${ui.simThrottle.value}%`;
+  }
+
+  function resizeCanvas() {
+    const w = wrap.clientWidth || window.innerWidth;
+    const h = wrap.clientHeight || window.innerHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  const reasonLabels = {
+    "outside-pad": "di luar landasan",
+    "vertical-speed": "|vy| > 2,0 m/s",
+    "horizontal-speed": "|vx| > 1,0 m/s",
+    "tilt-angle": "kemiringan > 5°",
+    "angular-rate": "laju putar terlalu tinggi",
+  };
+
+  function updateHUD() {
+    const tel = K.getRocketTelemetry(simState);
+    ui.telemMass.textContent = `Massa: ${tel.totalMass.toFixed(1)} kg`;
+    ui.valAlt.textContent = `${tel.altitude.toFixed(2)} m`;
+    const dispVx = simState.contactTelemetry ? simState.contactTelemetry.vx : tel.vx;
+    const dispVy = simState.contactTelemetry ? simState.contactTelemetry.vy : tel.vy;
+    const dispThetaDeg = simState.contactTelemetry
+      ? (simState.contactTelemetry.theta * 180) / Math.PI
+      : tel.thetaDeg;
+    ui.valVel.textContent = `${dispVy.toFixed(2)} / ${dispVx.toFixed(2)} m/s`;
+    ui.valTheta.textContent = `${dispThetaDeg.toFixed(1)}°`;
+    ui.valFuel.textContent = `${tel.fuelMass.toFixed(2)} kg`;
+    ui.valThrust.textContent = `${tel.thrust.toFixed(0)} N`;
+    ui.valWeight.textContent = `${tel.weight.toFixed(0)} N`;
+
+    ui.statusBanner.classList.remove("good", "danger");
+    if (simState.status === "landed") {
+      ui.statusBanner.classList.add("good");
+      ui.statusText.textContent = `Pendaratan Sukses! (|vy| = ${Math.abs(dispVy).toFixed(2)} m/s, sisa BB ${tel.fuelMass.toFixed(1)} kg)`;
+    } else if (simState.status === "crashed") {
+      ui.statusBanner.classList.add("danger");
+      const why = simState.crashReasons.map((r) => reasonLabels[r] || r).join(", ");
+      ui.statusText.textContent = `Gagal mendarat (${why})`;
+    } else if (paused) {
+      ui.statusText.textContent = "Simulasi dijeda";
+    } else if (tel.fuelMass <= 0.001) {
+      ui.statusBanner.classList.add("danger");
+      ui.statusText.textContent = "Bahan bakar habis! Roket jatuh bebas di bawah gravitasi";
+    } else {
+      ui.statusText.textContent =
+        activeMode === "game"
+          ? "Turunkan roket perlahan ke landasan tengah"
+          : "Mode Simulasi: amati keseimbangan gaya dorong dan berat";
+    }
+  }
+
+  function drawScene() {
+    const w = wrap.clientWidth || window.innerWidth;
+    const h = wrap.clientHeight || window.innerHeight;
+
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, "#040814");
+    grad.addColorStop(0.65, "#0d1b36");
+    grad.addColorStop(1, "#1e293b");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    for (const s of stars) {
+      ctx.fillStyle = `rgba(226, 232, 240, ${s.alpha})`;
+      ctx.beginPath();
+      ctx.arc(s.rx * w, s.ry * h, s.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // World -> Screen mapping (padY = 0 sits near bottom fifth of safe area)
+    const worldSpanY = 36;
+    const scale = Math.min(w / 32, (h * 0.62) / worldSpanY);
+    const originScreenX = w * 0.5;
+    const groundScreenY = h * 0.72;
+    const toSX = (wx) => originScreenX + wx * scale;
+    const toSY = (wy) => groundScreenY - wy * scale;
+
+    // Terrain ground
+    ctx.fillStyle = "#334155";
+    ctx.fillRect(0, groundScreenY, w, h - groundScreenY);
+    ctx.strokeStyle = "#64748b";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, groundScreenY);
+    ctx.lineTo(w, groundScreenY);
+    ctx.stroke();
+
+    // Vertical altitude scale ticks on left
+    ctx.fillStyle = "rgba(148, 163, 184, 0.7)";
+    ctx.font = "11px Consolas, monospace";
+    for (let alt = 5; alt <= 30; alt += 5) {
+      const sy = toSY(alt);
+      if (sy > 80 && sy < groundScreenY) {
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.14)";
+        ctx.beginPath();
+        ctx.moveTo(0, sy);
+        ctx.lineTo(w, sy);
+        ctx.stroke();
+        ctx.fillText(`${alt}m`, 14, sy - 3);
+      }
+    }
+
+    // Landing pad
+    const { padCenterX, padHalfWidth, padY } = simState.params;
+    const padLeftX = toSX(padCenterX - padHalfWidth);
+    const padRightX = toSX(padCenterX + padHalfWidth);
+    const padTopY = toSY(padY);
+
+    ctx.fillStyle = simState.status === "landed" ? "#22c55e" : "#38bdf8";
+    ctx.fillRect(padLeftX, padTopY - 4, padRightX - padLeftX, 8);
+    ctx.fillStyle = "#facc15";
+    ctx.fillRect(padLeftX - 3, padTopY - 12, 6, 12);
+    ctx.fillRect(padRightX - 3, padTopY - 12, 6, 12);
+
+    // Trajectory trail
+    if (simState.trail.length > 1) {
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.45)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i < simState.trail.length; i += 1) {
+        const pt = simState.trail[i];
+        const px = toSX(pt.x);
+        const py = toSY(pt.y);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+    }
+
+    // Draw Rocket at (simState.x, simState.y), rotated by -simState.theta in screen coords
+    // Wait: screen Y points DOWN, world +theta is CCW from +Y -> top tilts LEFT -> canvas rotate(-theta)!
+    const rx = toSX(simState.x);
+    const ry = toSY(simState.y);
+    const legPx = simState.params.legOffset * scale;
+    const footPx = simState.params.footHalfSpan * scale;
+
+    ctx.save();
+    ctx.translate(rx, ry);
+    ctx.rotate(-simState.theta);
+
+    // Exhaust flame proportional to thrust
+    if (simState.status === "flying" && simState.currentThrust > 1) {
+      const ratio = simState.currentThrust / simState.params.maxThrust;
+      const flameLen = (14 + ratio * 28) * (0.85 + Math.random() * 0.3);
+      const flameGrad = ctx.createLinearGradient(0, legPx * 0.45, 0, legPx * 0.45 + flameLen);
+      flameGrad.addColorStop(0, "#fef08a");
+      flameGrad.addColorStop(0.5, "#f97316");
+      flameGrad.addColorStop(1, "rgba(239,68,68,0)");
+      ctx.fillStyle = flameGrad;
+      ctx.beginPath();
+      ctx.moveTo(-footPx * 0.35, legPx * 0.45);
+      ctx.lineTo(footPx * 0.35, legPx * 0.45);
+      ctx.lineTo(0, legPx * 0.45 + flameLen);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // RCS side plumes
+    if (simState.status === "flying" && Math.abs(simState.torqueInput) > 0.05) {
+      ctx.fillStyle = "#7dd3fc";
+      const side = simState.torqueInput > 0 ? 1 : -1;
+      ctx.beginPath();
+      ctx.moveTo(side * footPx * 0.55, -legPx * 0.55);
+      ctx.lineTo(side * (footPx * 0.55 + 14), -legPx * 0.65);
+      ctx.lineTo(side * (footPx * 0.55 + 14), -legPx * 0.45);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Landing legs
+    ctx.strokeStyle = "#cbd5e1";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(-footPx * 0.4, legPx * 0.3);
+    ctx.lineTo(-footPx, legPx);
+    ctx.moveTo(footPx * 0.4, legPx * 0.3);
+    ctx.lineTo(footPx, legPx);
+    ctx.stroke();
+
+    // Foot pads
+    ctx.strokeStyle = "#facc15";
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(-footPx - 5, legPx);
+    ctx.lineTo(-footPx + 5, legPx);
+    ctx.moveTo(footPx - 5, legPx);
+    ctx.lineTo(footPx + 5, legPx);
+    ctx.stroke();
+
+    // Main Capsule Body
+    const bodyW = Math.max(16, footPx * 0.9);
+    const bodyH = Math.max(24, legPx * 1.15);
+    ctx.fillStyle = simState.status === "crashed" ? "#ef4444" : "#e2e8f0";
+    ctx.beginPath();
+    ctx.moveTo(0, -bodyH * 0.72);
+    ctx.quadraticCurveTo(bodyW * 0.65, -bodyH * 0.2, bodyW * 0.52, bodyH * 0.35);
+    ctx.lineTo(-bodyW * 0.52, bodyH * 0.35);
+    ctx.quadraticCurveTo(-bodyW * 0.65, -bodyH * 0.2, 0, -bodyH * 0.72);
+    ctx.closePath();
+    ctx.fill();
+
+    // Window
+    ctx.fillStyle = "#0ea5e9";
+    ctx.beginPath();
+    ctx.arc(0, -bodyH * 0.12, bodyW * 0.22, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+
+    // Force vectors at rocket center (Gravity down amber, Thrust green along thrust vector)
+    const weight = (simState.params.dryMass + simState.fuelMass) * simState.params.gravity;
+    const vecScale = 0.025;
+    drawArrow(rx - 18, ry, rx - 18, ry + weight * vecScale, "#f59e0b", "mg");
+    if (simState.currentThrust > 1) {
+      const tx = -Math.sin(simState.theta) * simState.currentThrust * vecScale;
+      const ty = -Math.cos(simState.theta) * simState.currentThrust * vecScale;
+      drawArrow(rx, ry, rx + tx, ry + ty, "#4ade80", "T");
+    }
+  }
+
+  function drawArrow(x1, y1, x2, y2, color, label) {
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    const ang = Math.atan2(y2 - y1, x2 - x1);
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - 8 * Math.cos(ang - 0.45), y2 - 8 * Math.sin(ang - 0.45));
+    ctx.lineTo(x2 - 8 * Math.cos(ang + 0.45), y2 - 8 * Math.sin(ang + 0.45));
+    ctx.closePath();
+    ctx.fill();
+    ctx.font = "bold 11px Segoe UI, sans-serif";
+    ctx.fillText(label, x2 + 5, y2 + 3);
+    ctx.restore();
+  }
+
+  function resetSimulation() {
+    paused = false;
+    ui.btnPause.textContent = "Jeda";
+    simState = createFreshState();
+    updateHUD();
+    drawScene();
+  }
+
+  function switchMode(mode) {
+    activeMode = mode === "simulation" ? "simulation" : "game";
+    const isSim = activeMode === "simulation";
+    ui.modeGameBtn.classList.toggle("active", !isSim);
+    ui.modeSimBtn.classList.toggle("active", isSim);
+    ui.modeGameBtn.setAttribute("aria-selected", String(!isSim));
+    ui.modeSimBtn.setAttribute("aria-selected", String(isSim));
+    ui.panelGame.classList.toggle("active", !isSim);
+    ui.panelSim.classList.toggle("active", isSim);
+    ui.missionDesc.textContent = isSim
+      ? "Atur gravitasi, dorongan maksimum, dan bahan bakar. Tekan Reset lalu uji keseimbangan T = m·g!"
+      : "Daratkan kedua kaki roket di landasan dengan |vy| ≤ 2,0 m/s, |vx| ≤ 1,0 m/s, dan kemiringan ≤ 5°.";
+    resetSimulation();
+  }
+
+  function bindHoldButton(btn, key) {
+    const start = (e) => {
+      e.preventDefault();
+      held[key] = true;
+    };
+    const end = () => {
+      held[key] = false;
+    };
+    btn.addEventListener("pointerdown", start);
+    btn.addEventListener("pointerup", end);
+    btn.addEventListener("pointercancel", end);
+    btn.addEventListener("pointerleave", end);
+  }
+
+  bindHoldButton(ui.btnThrustHold, "thrust");
+  bindHoldButton(ui.btnRotLeft, "left");
+  bindHoldButton(ui.btnRotRight, "right");
+
+  ui.modeGameBtn.addEventListener("click", () => switchMode("game"));
+  ui.modeSimBtn.addEventListener("click", () => switchMode("simulation"));
+
+  ui.gameThrottle.addEventListener("input", syncLabels);
+  ui.simThrottle.addEventListener("input", syncLabels);
+
+  for (const el of [ui.simGravity, ui.simThrust, ui.simFuel]) {
+    el.addEventListener("input", () => {
+      syncLabels();
+      pendingSimParams = readSimInputs();
+      ui.simPendingNote.hidden = false;
+    });
+  }
+
+  ui.btnReset.addEventListener("click", resetSimulation);
+  ui.btnPause.addEventListener("click", () => {
+    paused = !paused;
+    ui.btnPause.textContent = paused ? "Lanjut" : "Jeda";
+    updateHUD();
+  });
+  ui.btnHoverPreset.addEventListener("click", () => {
+    const tel = K.getRocketTelemetry(simState);
+    const pct = Math.round(tel.hoverThrottle * 100);
+    if (activeMode === "simulation") {
+      ui.simThrottle.value = String(pct);
+    } else {
+      ui.gameThrottle.value = String(pct);
+    }
+    syncLabels();
+  });
+
+  function onKeyDown(e) {
+    if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+      return;
+    }
+    if (e.code === "KeyW" || e.code === "ArrowUp" || e.code === "Space") {
+      e.preventDefault();
+      held.thrust = true;
+    } else if (e.code === "KeyA" || e.code === "ArrowLeft") {
+      held.left = true;
+    } else if (e.code === "KeyD" || e.code === "ArrowRight") {
+      held.right = true;
+    } else if (e.code === "KeyR" && !e.repeat) {
+      resetSimulation();
+    }
+  }
+  function onKeyUp(e) {
+    if (e.code === "KeyW" || e.code === "ArrowUp" || e.code === "Space") {
+      held.thrust = false;
+    } else if (e.code === "KeyA" || e.code === "ArrowLeft") {
+      held.left = false;
+    } else if (e.code === "KeyD" || e.code === "ArrowRight") {
+      held.right = false;
+    }
+  }
+  function onBlur() {
+    held.thrust = false;
+    held.left = false;
+    held.right = false;
+  }
+
+  window.addEventListener("keydown", onKeyDown);
+  window.addEventListener("keyup", onKeyUp);
+  window.addEventListener("blur", onBlur);
+  window.addEventListener("resize", resizeCanvas);
+
+  let accumulator = 0;
+  let lastTs = performance.now();
+  let rafId = 0;
+
+  function loop(ts) {
+    rafId = requestAnimationFrame(loop);
+    const frameDt = Math.min(0.05, Math.max(0, (ts - lastTs) / 1000));
+    lastTs = ts;
+
+    if (!paused && simState.status === "flying") {
+      const sliderVal =
+        activeMode === "simulation"
+          ? parseFloat(ui.simThrottle.value) / 100
+          : parseFloat(ui.gameThrottle.value) / 100;
+      const throttle = held.thrust ? 1.0 : sliderVal;
+      const torqueCommand = (held.left ? 1 : 0) + (held.right ? -1 : 0);
+
+      accumulator += frameDt;
+      while (accumulator >= K.ROCKET_DT && simState.status === "flying") {
+        K.stepRocket(simState, { throttle, torqueCommand }, K.ROCKET_DT);
+        accumulator -= K.ROCKET_DT;
+      }
+
+      const lastTrail = simState.trail[simState.trail.length - 1];
+      if (!lastTrail || Math.hypot(simState.x - lastTrail.x, simState.y - lastTrail.y) >= 0.4) {
+        simState.trail.push({ x: simState.x, y: simState.y });
+      }
+      updateHUD();
+    } else {
+      accumulator = 0;
+    }
+
+    drawScene();
+  }
+
+  function cleanup() {
+    cancelAnimationFrame(rafId);
+    window.removeEventListener("keydown", onKeyDown);
+    window.removeEventListener("keyup", onKeyUp);
+    window.removeEventListener("blur", onBlur);
+    window.removeEventListener("resize", resizeCanvas);
+  }
+  window.addEventListener("beforeunload", cleanup);
+  window.addEventListener("pagehide", cleanup);
+
+  syncLabels();
+  resizeCanvas();
+  updateHUD();
+  drawScene();
+  document.body.dataset.ready = "true";
+  rafId = requestAnimationFrame(loop);
+})();
+
+</script>
+  </body>
+</html>

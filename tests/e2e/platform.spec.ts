@@ -32,8 +32,8 @@ test("home, search, catalog filters, details, about and unavailable routes", asy
   for (const [filter, count] of [
     ["2D games", 1],
     ["3D games", 7],
-    ["Playable", 4],
-    ["Coming Soon", 4],
+    ["Playable", 8],
+    ["Coming Soon", 0],
     ["All games", 8],
   ] as const) {
     await page.getByRole("button", { name: filter, exact: true }).click();
@@ -68,10 +68,10 @@ test("home, search, catalog filters, details, about and unavailable routes", asy
       page.getByRole("heading", { name: "Simulation Mode", exact: true }),
     ).toBeVisible();
     await expect(page.locator("canvas")).toHaveCount(0);
+    await expect(
+      page.getByRole("link", { name: /Play Now/ }),
+    ).toHaveAttribute("href", `/games/${slug}/play`);
     if (slug === "billiard") {
-      await expect(
-        page.getByRole("link", { name: /Play Now/ }),
-      ).toHaveAttribute("href", "/games/billiard/play");
       await expect(
         page.getByRole("heading", { name: "Classic Mode" }),
       ).toBeVisible();
@@ -82,9 +82,8 @@ test("home, search, catalog filters, details, about and unavailable routes", asy
       });
     } else {
       await expect(
-        page.getByText("Concept preview · Gameplay belum tersedia"),
+        page.getByRole("heading", { name: "Game Mode" }),
       ).toBeVisible();
-      await expect(page.getByRole("link", { name: /Play Now/ })).toHaveCount(0);
     }
     expect(
       await page.evaluate(
@@ -113,7 +112,6 @@ test("home, search, catalog filters, details, about and unavailable routes", asy
   );
   for (const route of [
     "/games/not-a-game",
-    "/games/golf/play",
     "/games/not-a-game/play",
   ]) {
     expect((await page.goto(route))?.status()).toBe(404);
