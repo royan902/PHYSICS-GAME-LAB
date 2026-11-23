@@ -800,6 +800,15 @@ body:has(.game-player) main.container {
   width: 100%;
   height: 100%;
 }
+.embed-frame.embed-immersive {
+  width: 100%;
+  height: max(560px, calc(100dvh - 190px));
+  max-height: none;
+  aspect-ratio: auto !important;
+}
+.embed-frame.embed-immersive:fullscreen {
+  height: 100%;
+}
 .embed-frame iframe {
   display: block;
   border: 0;

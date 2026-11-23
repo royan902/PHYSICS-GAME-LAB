@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     template: "%s | Physics Game Lab",
   },
   description:
-    "Jelajahi lima game simulasi fisika: biliar, golf, roket, meriam, dan ramp race. Belajar melalui eksperimen dan permainan.",
+    "Jelajahi game simulasi fisika: biliar, tiga Hukum Newton, golf, roket, meriam, dan ramp race. Belajar melalui eksperimen dan permainan.",
 };
 export default function RootLayout({
   children,

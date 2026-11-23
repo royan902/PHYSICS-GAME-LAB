@@ -8,13 +8,18 @@ import { EmbeddedGame } from "../../src/components/game-player/embedded-game";
 import config from "../../next.config";
 
 describe("game registry and runtime trust boundaries", () => {
-  it("keeps the five real entries and requires a runtime only for playable games", () => {
-    expect(new Set(games.map((game) => game.slug)).size).toBe(5);
+  it("keeps the eight real entries and requires a runtime only for playable games", () => {
+    expect(new Set(games.map((game) => game.slug)).size).toBe(8);
     expect(
       games
         .filter((game) => game.status === "Playable")
         .map((game) => game.slug),
-    ).toEqual(["billiard"]);
+    ).toEqual([
+      "billiard",
+      "newton-first-law",
+      "newton-second-law",
+      "newton-third-law",
+    ]);
     expect(
       games
         .filter((game) => game.status !== "Playable")
@@ -23,6 +28,12 @@ describe("game registry and runtime trust boundaries", () => {
     expect(runtimeExamples.native).toEqual({ kind: "native", id: "billiard" });
   });
   it("accepts nested local builds and rejects traversal and foreign origins", () => {
+    expect(
+      runtimeSource({
+        kind: "html5",
+        src: "/embedded-games/newton-first-law/index.html",
+      }),
+    ).toBe("/embedded-games/newton-first-law/index.html");
     expect(
       runtimeSource({
         kind: "html5",
@@ -36,6 +47,8 @@ describe("game registry and runtime trust boundaries", () => {
       "/games-html/a\\b/index.html",
       "https://evil.example/index.html",
       "/games-html/a/index.html?redirect=1",
+      "/embedded-games/../index.html",
+      "/embedded-games/%2e%2e/index.html",
     ])
       expect(() => runtimeSource({ kind: "html5", src })).toThrow();
   });
@@ -63,6 +76,7 @@ describe("game registry and runtime trust boundaries", () => {
   it("isolates standalone documents even outside the player", async () => {
     const headers = await config.headers!();
     expect(headers[0].source).toBe("/games-html/:path*");
+    expect(headers[1].source).toBe("/embedded-games/:path*");
     expect(headers[0].headers).toContainEqual({
       key: "Content-Security-Policy",
       value: "sandbox allow-scripts allow-pointer-lock; frame-ancestors 'self'",

@@ -22,6 +22,8 @@ Satu aplikasi Next.js App Router, TypeScript strict, Tailwind CSS, satu package 
 
 ## Website Enhancement V2
 
+Integrasi Newton menambahkan tiga build HTML5 mandiri di `public/embedded-games/` dengan aset grafis/CSS bersama. Adapter memakai layout immersive dan memasang iframe sesudah hydration. Batas state tetap berupa dokumen sandbox masing-masing. Lihat [NEWTON_INTEGRATION.md](NEWTON_INTEGRATION.md) untuk model edukatif sumber dan batas validasinya.
+
 Metadata katalog di `src/data/games.ts` menggunakan union status dan runtime bertipe. Detail `/games/[slug]` tidak mengimpor engine; player `/games/[slug]/play` memakai daftar importer native literal dan adapter HTML5/external. Billiard tetap memakai loader serta shell immersive miliknya tanpa perubahan internal. Native memakai dependency aplikasi yang kompatibel; build terisolasi memakai iframe sandbox tanpa same-origin. Panduan dan batas keamanan ada di [GAME_INTEGRATION.md](GAME_INTEGRATION.md).
 
 ## Aliran data

@@ -1,5 +1,7 @@
 # Mendaftarkan game
 
+Game Newton memakai root `/embedded-games/<slug>/index.html` yang juga didukung validator dan header sandbox. Gunakan `layout: "immersive"` untuk HUD yang membutuhkan tinggi viewport; contoh aktual ada pada tiga entri Newton. Detail pemisahan: [NEWTON_INTEGRATION.md](NEWTON_INTEGRATION.md).
+
 Registry ada di `src/data/games.ts`. Isi slug unik, judul, thumbnail lokal, dimensi, topik, deskripsi, konsep, dan `gameMode`. Isi `simulationMode` hanya jika game menyediakan mode eksperimen. `Playable` wajib memiliki `runtime`; `Coming Soon`/`In Development` tidak memiliki runtime. Contoh ketiga runtime ada di `src/games/registry-examples.ts` dan tidak tampil di katalog.
 
 ```ts

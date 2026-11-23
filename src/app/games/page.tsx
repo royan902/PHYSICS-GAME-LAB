@@ -9,8 +9,8 @@ export default function Games() {
           Find your next <span>experiment.</span>
         </h1>
         <p>
-          Lima dunia untuk menjelajahi gaya, gerak, dan energi. Mulai dari rasa
-          ingin tahu.
+          Delapan dunia untuk menjelajahi gaya, gerak, dan energi. Mulai dari
+          rasa ingin tahu.
         </p>
       </div>
       <GameLibrary />

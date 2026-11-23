@@ -58,7 +58,7 @@ export default async function GameDetail({
             />
             <div className="preview-caption">
               {playable
-                ? "Ilustrasi game · Billiard Physics 3D"
+                ? `Preview game · ${game.title}`
                 : "Concept preview · Gameplay belum tersedia"}
             </div>
           </div>

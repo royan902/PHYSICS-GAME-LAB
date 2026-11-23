@@ -3,6 +3,7 @@ export type GameRuntime =
   | {
       kind: "html5";
       src: string;
+      layout?: "immersive";
       aspectRatio?: "16/9" | "4/3" | "9/16";
       pointerLock?: boolean;
     }
@@ -19,9 +20,13 @@ export function runtimeSource(
   runtime: Exclude<GameRuntime, { kind: "native" }>,
 ) {
   if (runtime.kind === "html5") {
-    if (!/^\/games-html\/(?:[a-zA-Z0-9_-]+\/)+index\.html$/.test(runtime.src))
+    if (
+      !/^\/(?:games-html|embedded-games)\/(?:[a-zA-Z0-9_-]+\/)+index\.html$/.test(
+        runtime.src,
+      )
+    )
       throw new Error(
-        "Build HTML5 harus berada di /games-html/<slug>/index.html.",
+        "Build HTML5 harus berada di /games-html/<slug>/index.html atau /embedded-games/<slug>/index.html.",
       );
     return runtime.src;
   }

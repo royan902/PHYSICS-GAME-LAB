@@ -36,6 +36,74 @@ export const games: readonly Game[] = [
     simulationMode:
       "Eksperimen dengan massa, restitusi, dan hambatan; amati kecepatan serta energi bola.",
   },
+
+  {
+    slug: "newton-first-law",
+    title: "Newton's First Law — Bus Inertia",
+    topic: "Inertia · Newton's First Law",
+    description:
+      "Amati penumpang bus saat gas, rem halus, dan rem mendadak. Bandingkan reaksi tubuh dengan dan tanpa sabuk pengaman.",
+    concepts: [
+      "Inersia",
+      "Hukum I Newton",
+      "Kecepatan dan percepatan",
+      "Gaya luar dari sabuk pengaman",
+    ],
+    gameMode:
+      "Kendalikan pedal bus dan sabuk, atur kekuatan gas/rem, lalu amati indikator inersia.",
+    dimension: "3D",
+    thumbnail: "/images/newton-first-law.png",
+    status: "Playable",
+    runtime: {
+      kind: "html5",
+      layout: "immersive",
+      src: "/embedded-games/newton-first-law/index.html",
+      aspectRatio: "16/9",
+    },
+  },
+  {
+    slug: "newton-second-law",
+    title: "Newton's Second Law — Gravity Gun",
+    topic: "Force · Mass · Acceleration",
+    description:
+      "Tembakkan gaya yang sama pada kayu, kargo, dan brankas. Bandingkan percepatan serta jarak benda dengan massa berbeda.",
+    concepts: [
+      "Gaya",
+      "Massa",
+      "Percepatan a = F/m",
+      "Impuls dan hambatan gerak",
+    ],
+    gameMode:
+      "Atur gaya Gravity Gun, tembak semua atau satu beban, lalu bandingkan hasil dan reset posisi.",
+    dimension: "3D",
+    thumbnail: "/images/newton-second-law.png",
+    status: "Playable",
+    runtime: {
+      kind: "html5",
+      layout: "immersive",
+      src: "/embedded-games/newton-second-law/index.html",
+      aspectRatio: "16/9",
+    },
+  },
+  {
+    slug: "newton-third-law",
+    title: "Newton's Third Law — Action & Reaction",
+    topic: "Action–Reaction · Recoil · Impulse",
+    description:
+      "Tembakkan meriam tank dan lompatkan karakter untuk melihat pasangan gaya aksi–reaksi serta efek kekuatan yang berbeda.",
+    concepts: ["Hukum III Newton", "Gaya aksi–reaksi", "Recoil", "Impuls"],
+    gameMode:
+      "Pilih Peluru Ringan, Meriam Tank, atau Mega Plasma; uji recoil dan lompatan karakter.",
+    dimension: "3D",
+    thumbnail: "/images/newton-third-law.png",
+    status: "Playable",
+    runtime: {
+      kind: "html5",
+      layout: "immersive",
+      src: "/embedded-games/newton-third-law/index.html",
+      aspectRatio: "16/9",
+    },
+  },
   {
     slug: "golf",
     thumbnail: "/images/golf.svg",

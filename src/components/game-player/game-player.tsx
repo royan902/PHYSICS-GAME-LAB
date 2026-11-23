@@ -1,10 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Component, type ReactNode } from "react";
 import type { Game } from "@/data/games";
 import { nativeGames } from "./native-games";
-import { EmbeddedGame } from "./embedded-game";
+// Mount frames after hydration so an early iframe load cannot leave the loading overlay stuck.
+const EmbeddedGame = dynamic(
+  () => import("./embedded-game").then((module) => module.EmbeddedGame),
+  {
+    ssr: false,
+    loading: () => <p role="status">Menyiapkan player…</p>,
+  },
+);
 
 class RuntimeBoundary extends Component<
   { children: ReactNode },

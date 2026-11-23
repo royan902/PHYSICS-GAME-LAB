@@ -4,6 +4,7 @@ Baseline perencanaan: **20 November 2026, Asia/Jakarta**. Seluruh pilihan versi,
 
 | Dokumen | Isi |
 | --- | --- |
+| [NEWTON_INTEGRATION.md](NEWTON_INTEGRATION.md) | Pemisahan tiga game Newton, lokasi, model sumber dan batas validasi |
 | [GAME_INTEGRATION.md](GAME_INTEGRATION.md) | Registry V2, native/HTML5/external, sandbox, dan cara menambahkan game |
 | [BLUEPRINT.md](BLUEPRINT.md) | Konsep, cakupan MVP, mode, pengalaman pengguna |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Batas modul, runtime, data, keputusan arsitektur |

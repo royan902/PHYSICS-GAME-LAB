@@ -33,7 +33,9 @@ export default function About() {
         <p>
           Billiard Physics kini dapat dimainkan: Classic 8-ball lokal dua pemain
           dan Simulation sandbox untuk mempelajari momentum, spin, jump,
-          gesekan, serta restitusi. Empat game lainnya masih Coming Soon.
+          gesekan, serta restitusi. Tiga eksperimen Hukum Newton juga tersedia:
+          Bus Inertia, Gravity Gun, dan Action &amp; Reaction. Empat game
+          roadmap lainnya masih Coming Soon.
         </p>
         <Link href="/games" className="button primary">
           Explore Games <Arrow />

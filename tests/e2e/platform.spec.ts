@@ -28,13 +28,13 @@ test("home, search, catalog filters, details, about and unavailable routes", asy
   });
   await page.getByRole("link", { name: "Explore Games", exact: true }).click();
   await expect(page).toHaveURL("/games");
-  await expect(page.locator(".game-card")).toHaveCount(5);
+  await expect(page.locator(".game-card")).toHaveCount(8);
   for (const [filter, count] of [
     ["2D games", 1],
-    ["3D games", 4],
-    ["Playable", 1],
+    ["3D games", 7],
+    ["Playable", 4],
     ["Coming Soon", 4],
-    ["All games", 5],
+    ["All games", 8],
   ] as const) {
     await page.getByRole("button", { name: filter, exact: true }).click();
     await expect(page.locator(".game-card")).toHaveCount(count);
@@ -49,7 +49,7 @@ test("home, search, catalog filters, details, about and unavailable routes", asy
   await expect(page.getByText("Belum ada game yang cocok.")).toBeVisible();
   await page.getByRole("button", { name: "Reset pencarian" }).click();
   await expect(search).toHaveValue("");
-  await expect(page.locator(".game-card")).toHaveCount(5);
+  await expect(page.locator(".game-card")).toHaveCount(8);
   await search.fill("no-such-game");
   await expect(page.locator(".game-card")).toHaveCount(0);
   await page.getByRole("button", { name: "Reset pencarian" }).click();

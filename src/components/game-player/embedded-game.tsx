@@ -68,7 +68,7 @@ export function EmbeddedGame({
         <>
           <div
             ref={frame}
-            className="embed-frame"
+            className={`embed-frame ${runtime.kind === "html5" && runtime.layout === "immersive" ? "embed-immersive" : ""}`}
             style={
               {
                 aspectRatio: runtime.aspectRatio ?? "16/9",
