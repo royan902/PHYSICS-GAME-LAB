@@ -1,31 +1,45 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { games } from "../../src/data/games";
+import { games, newtonCollection } from "../../src/data/games";
 import { frameSandbox, runtimeSource } from "../../src/games/runtime";
 import { runtimeExamples } from "../../src/games/registry-examples";
 import { EmbeddedGame } from "../../src/components/game-player/embedded-game";
 import config from "../../next.config";
 
 describe("game registry and runtime trust boundaries", () => {
-  it("keeps the eight real entries and requires a runtime only for playable games", () => {
-    expect(new Set(games.map((game) => game.slug)).size).toBe(8);
-    expect(
-      games
-        .filter((game) => game.status === "Playable")
-        .map((game) => game.slug),
-    ).toEqual([
-      "billiard",
+  it("keeps the original slugs and requires a runtime only for playable games", () => {
+    expect(new Set(games.map((game) => game.slug)).size).toBe(games.length);
+    for (const game of games) {
+      expect(Boolean(game.runtime), game.slug).toBe(game.status === "Playable");
+    }
+    expect(games).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ slug: "billiard", status: "Playable" }),
+        ...["golf", "rocket-landing", "cannon", "ramp-race"].map((slug) =>
+          expect.objectContaining({ slug }),
+        ),
+      ]),
+    );
+    expect(runtimeExamples.native).toEqual({ kind: "native", id: "billiard" });
+  });
+  it("collects the three independent Newton games and documents each model", () => {
+    const collection = games.filter(
+      (game) => game.collection === newtonCollection,
+    );
+    expect(collection.map((game) => game.slug)).toEqual([
       "newton-first-law",
       "newton-second-law",
       "newton-third-law",
     ]);
-    expect(
-      games
-        .filter((game) => game.status !== "Playable")
-        .every((game) => !game.runtime),
-    ).toBe(true);
-    expect(runtimeExamples.native).toEqual({ kind: "native", id: "billiard" });
+    for (const game of collection) {
+      expect(game.status).toBe("Playable");
+      expect(game.runtime).toMatchObject({
+        kind: "html5",
+        src: `/embedded-games/${game.slug}/index.html`,
+      });
+      expect(game.modelNote).toBeTruthy();
+    }
   });
   it("accepts nested local builds and rejects traversal and foreign origins", () => {
     expect(

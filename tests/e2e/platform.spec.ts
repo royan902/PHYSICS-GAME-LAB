@@ -15,6 +15,12 @@ test("home, search, catalog filters, details, about and unavailable routes", asy
     "Discover Physics",
   );
   await expect(page.locator(".game-card")).toHaveCount(3);
+  const collection = page.getByRole("region", { name: "Hukum Newton" });
+  for (const title of ["Bus Inertia", "Gravity Gun", "Action & Reaction"]) {
+    await expect(
+      collection.getByRole("link", { name: new RegExp(title) }),
+    ).toBeVisible();
+  }
   await expect(page.locator("canvas")).toHaveCount(0);
   expect(
     await page.evaluate(
@@ -32,9 +38,10 @@ test("home, search, catalog filters, details, about and unavailable routes", asy
   for (const [filter, count] of [
     ["2D games", 1],
     ["3D games", 7],
+    ["Semua dimensi", 8],
     ["Playable", 4],
     ["Coming Soon", 4],
-    ["All games", 8],
+    ["Semua status", 8],
   ] as const) {
     await page.getByRole("button", { name: filter, exact: true }).click();
     await expect(page.locator(".game-card")).toHaveCount(count);
@@ -122,6 +129,62 @@ test("home, search, catalog filters, details, about and unavailable routes", asy
     ).toBeVisible();
   }
   expect(errors.filter((error) => !error.includes("404"))).toEqual([]);
+});
+
+test("catalog combines filters and restores the URL across navigation", async ({
+  page,
+}) => {
+  await page.goto("/games?dimension=3d&status=playable");
+  const cards = page.locator(".game-card");
+  await expect(cards).toHaveCount(4);
+  await expect(page.getByRole("button", { name: "3D games" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(page.getByRole("button", { name: "Playable" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  const search = page.getByRole("searchbox");
+  await search.pressSequentially("Gravity Gun");
+  const filteredUrl = "/games?dimension=3d&status=playable&q=Gravity+Gun";
+  await expect(page).toHaveURL(filteredUrl);
+  await expect(cards).toHaveCount(1);
+  await page.goBack();
+  await expect(search).toHaveValue("");
+  await expect(cards).toHaveCount(4);
+  await page.goForward();
+  await expect(search).toHaveValue("Gravity Gun");
+
+  await page.getByRole("button", { name: "2D games" }).click();
+  await expect(cards).toHaveCount(0);
+  await page.goBack();
+  await expect(page).toHaveURL(filteredUrl);
+  await expect(search).toHaveValue("Gravity Gun");
+  await expect(cards).toHaveCount(1);
+  await page.reload();
+  await expect(search).toHaveValue("Gravity Gun");
+  await expect(cards).toHaveCount(1);
+
+  await cards.getByRole("heading", { name: /Gravity Gun/ }).click();
+  await expect(page).toHaveURL("/games/newton-second-law");
+  await page.goBack();
+  await expect(page).toHaveURL(filteredUrl);
+  await expect(cards).toHaveCount(1);
+
+  await page.goto("/games?dimension=unknown&status=unknown");
+  await expect(cards).toHaveCount(8);
+  await expect(
+    page.getByRole("button", { name: "Semua dimensi" }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    page.getByRole("button", { name: "Semua status" }),
+  ).toHaveAttribute("aria-pressed", "true");
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
 });
 
 test("keyboard, reduced motion and mobile menu", async ({ page }) => {
