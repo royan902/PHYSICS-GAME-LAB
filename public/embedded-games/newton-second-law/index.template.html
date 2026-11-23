@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="/icon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Newton's Second Law — Gravity Gun</title>
+    <link rel="stylesheet" href="../shared/newton.css" />
+  </head>
+  <body>
+    <div id="canvas-wrap"></div>
+    <div id="badge-1" class="floating-badge" style="opacity: 0"></div>
+    <div id="badge-2" class="floating-badge" style="opacity: 0"></div>
+    <div id="badge-3" class="floating-badge" style="opacity: 0"></div>
+    <div id="badge-4" class="floating-badge" style="opacity: 0"></div>
+    <div class="hud-layer">
+      <div class="top-bar">
+        <section class="panel scenario-card">
+          <div class="game-tools">
+            <a href="/games">← Back to Games</a
+            ><button class="btn btn-util" id="fullscreen">Fullscreen</button
+            ><button
+              class="btn btn-util"
+              id="zoom-in"
+              aria-label="Perbesar kamera"
+            >
+              ＋</button
+            ><button
+              class="btn btn-util"
+              id="zoom-out"
+              aria-label="Perkecil kamera"
+            >
+              −
+            </button>
+          </div>
+          <div class="mission-header">
+            <h1 class="mission-title" id="ui-title">
+              Newton's Second Law — Gravity Gun
+            </h1>
+            <span class="formula-pill" id="ui-formula"></span>
+          </div>
+          <p class="mission-desc" id="ui-desc"></p>
+          <div class="reaction-banner" id="ui-banner">
+            <span id="ui-reaction-text"></span>
+          </div>
+        </section>
+        <div class="panel telemetry-card">
+          <div class="telemetry-title">
+            <span>Monitor Fisika Real-Time</span>
+            <span id="ui-mode-tag" style="color: #38bdf8">Skenario 1</span>
+          </div>
+          <div class="stat-grid">
+            <div class="stat-box">
+              <span class="stat-label" id="lbl-stat-1">Kecepatan Bus (v)</span>
+              <span class="stat-val" id="val-stat-1">0.0 km/j</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label" id="lbl-stat-2">Percepatan (a)</span>
+              <span class="stat-val" id="val-stat-2">0.0 m/s²</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label" id="lbl-stat-3">Condong Tubuh</span>
+              <span class="stat-val" id="val-stat-3">0° (Tegak)</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label" id="lbl-stat-4">Sabuk Pengaman</span>
+              <span class="stat-val" id="val-stat-4" style="color: #f87171"
+                >LEPAS (OFF)</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-bar">
+        <section class="panel deck-card">
+          <div class="deck-section active" id="deck-2">
+            <div class="slider-wrap">
+              <div class="slider-head">
+                <span>Daya Tembak Gravity Gun (Gaya F)</span>
+                <strong id="txt-gun-force">400 N</strong>
+              </div>
+              <input
+                type="range"
+                id="rng-gun-force"
+                aria-label="Gaya Gravity Gun"
+                min="150"
+                max="800"
+                step="50"
+                value="400"
+                oninput="updateGunForce()"
+              />
+            </div>
+            <div class="sub-row" style="font-size: 0.73rem; color: #94a3b8">
+              <span>📦 Kayu: <strong>5 kg</strong> (Cepat)</span>
+              <span>🛢️ Kargo: <strong>25 kg</strong> (Sedang)</span>
+              <span>🏦 Brankas: <strong>100 kg</strong> (Berat)</span>
+            </div>
+          </div>
+        </section>
+        <section class="panel actions-card">
+          <div class="btn-row" id="act-2">
+            <button class="btn btn-blue" onclick="fireGravityGun('all')">
+              ⚡ Tembak Semua Beban (Bandingkan a = F/m)
+            </button>
+            <button class="btn btn-gas" onclick="fireGravityGun('wood')">
+              📦 Kayu (5kg)
+            </button>
+            <button class="btn btn-purple" onclick="fireGravityGun('vault')">
+              🏦 Brankas (100kg)
+            </button>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-util" onclick="resetCurrentScene()">
+              🔄 Reset Posisi [R]
+            </button>
+          </div>
+          <p class="cam-hint">
+            Geser untuk orbit • Scroll / tombol ＋ − untuk zoom
+          </p>
+        </section>
+      </div>
+    </div>
+    <div id="runtime-error" hidden role="alert">
+      <p id="error-message"></p>
+      <button onclick="location.reload()">Muat ulang game</button>
+      <p><a href="/games">Kembali ke katalog</a></p>
+    </div>
+    <script>
+      function showError(message) {
+        document.getElementById("runtime-error").hidden = false;
+        document.getElementById("error-message").textContent = message;
+      }
+    </script>
+    <script
+      src="../shared/three-r128.min.js"
+      onerror="showError('Library grafis gagal dimuat. Coba muat ulang.')"
+    ></script>
+    <script src="./game.js"></script>
+  </body>
+</html>
