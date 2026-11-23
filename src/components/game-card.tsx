@@ -2,7 +2,15 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Game } from "@/data/games";
 import { Arrow } from "./icons";
-export function GameCard({ game, index = 0 }: { game: Game; index?: number }) {
+export function GameCard({
+  game,
+  index = 0,
+  heading: Heading = "h3",
+}: {
+  game: Game;
+  index?: number;
+  heading?: "h3" | "h4";
+}) {
   return (
     <Link
       href={`/games/${game.slug}`}
@@ -20,10 +28,10 @@ export function GameCard({ game, index = 0 }: { game: Game; index?: number }) {
         <span className="dimension">{game.dimension}</span>
       </div>
       <div className="card-body">
-        <h3>
+        <Heading>
           {game.title}
           <Arrow />
-        </h3>
+        </Heading>
         <p>{game.topic}</p>
         <div className="card-bottom">
           <span

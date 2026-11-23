@@ -109,6 +109,9 @@ for (const slug of slugs)
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
       "Newton",
     );
+    await expect(
+      page.getByRole("heading", { name: "Batas model edukatif" }),
+    ).toBeVisible();
     await page.getByRole("link", { name: /Play Now/ }).click();
     const view = page.frameLocator("iframe");
     await expect(page.locator(".embed-loading")).toBeHidden();

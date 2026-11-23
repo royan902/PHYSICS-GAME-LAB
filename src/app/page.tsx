@@ -3,7 +3,11 @@ import Link from "next/link";
 import { Arrow } from "@/components/icons";
 import { GameCard } from "@/components/game-card";
 import { Reveal } from "@/components/reveal";
-import { games } from "@/data/games";
+import { games, newtonCollection } from "@/data/games";
+
+const newtonGames = games.filter(
+  (game) => game.collection === newtonCollection,
+);
 
 export default function Home() {
   return (
@@ -95,15 +99,15 @@ export default function Home() {
         <section className="home-library" aria-labelledby="preview-title">
           <div className="section-heading">
             <div>
-              <h2 id="preview-title">Game Library</h2>
-              <p>Pilih duniamu. Ikuti rasa ingin tahumu.</p>
+              <h2 id="preview-title">{newtonCollection}</h2>
+              <p>Jelajahi tiga hukum Newton lewat tiga game.</p>
             </div>
             <Link className="text-link" href="/games">
               Lihat semua game <Arrow />
             </Link>
           </div>
           <div className="game-grid">
-            {games.slice(0, 3).map((game, index) => (
+            {newtonGames.map((game, index) => (
               <GameCard key={game.slug} game={game} index={index} />
             ))}
           </div>

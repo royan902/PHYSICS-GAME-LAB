@@ -85,6 +85,12 @@ export default async function GameDetail({
               <li key={concept}>{concept}</li>
             ))}
           </ul>
+          {game.modelNote && (
+            <>
+              <h2>Batas model edukatif</h2>
+              <p>{game.modelNote}</p>
+            </>
+          )}
           {playable && (
             <p className="availability">
               {game.slug === "billiard"

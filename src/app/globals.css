@@ -48,12 +48,14 @@ input:focus-visible {
 h1,
 h2,
 h3,
+h4,
 p {
   margin-top: 0;
 }
 h1,
 h2,
-h3 {
+h3,
+h4 {
   line-height: 1.2;
   letter-spacing: -0.035em;
 }
@@ -65,7 +67,8 @@ h2 {
   font-size: 26px;
   font-weight: 700;
 }
-h3 {
+h3,
+h4 {
   font-size: 19px;
   font-weight: 700;
 }
@@ -354,14 +357,14 @@ h3 {
 .card-body {
   padding: 21px;
 }
-.card-body h3 {
+.card-body :is(h3, h4) {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
   margin-bottom: 8px;
 }
-.card-body h3 svg {
+.card-body :is(h3, h4) svg {
   color: #8ba6bf;
   flex-shrink: 0;
 }
@@ -439,11 +442,26 @@ h3 {
 .search-field input:focus-visible {
   outline-offset: 0;
 }
+.catalog-filters {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 30px;
+}
 .filters {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: 9px;
-  margin-bottom: 30px;
+}
+.filters > span {
+  min-width: 65px;
+  color: #becbdc;
+}
+.catalog-group + .catalog-group {
+  margin-top: 28px;
+}
+.catalog-group > h3 {
+  margin: 0 0 12px;
 }
 .filters button {
   background: transparent;
@@ -1013,7 +1031,9 @@ body:has(.game-player) main.container {
   }
   .filters {
     gap: 8px;
-    margin-bottom: 25px;
+  }
+  .filters > span {
+    flex-basis: 100%;
   }
   .filters button {
     padding: 9px 16px;

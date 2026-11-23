@@ -1,5 +1,7 @@
 import type { GameRuntime } from "@/games/runtime";
 
+export const newtonCollection = "Hukum Newton";
+
 export type Game = {
   slug: string;
   title: string;
@@ -10,6 +12,8 @@ export type Game = {
   concepts: readonly string[];
   gameMode: string;
   simulationMode?: string;
+  collection?: typeof newtonCollection;
+  modelNote?: string;
 } & (
   | { status: "Playable"; runtime: GameRuntime }
   | { status: "In Development" | "Coming Soon"; runtime?: never }
@@ -39,6 +43,9 @@ export const games: readonly Game[] = [
 
   {
     slug: "newton-first-law",
+    collection: newtonCollection,
+    modelNote:
+      "Model pegas–peredam sederhana menggambarkan gerak tubuh penumpang secara kualitatif saat bus berubah kecepatan. Gunakan untuk mengamati inersia dan efek sabuk dalam ilustrasi.",
     title: "Newton's First Law — Bus Inertia",
     topic: "Inertia · Newton's First Law",
     description:
@@ -63,6 +70,9 @@ export const games: readonly Game[] = [
   },
   {
     slug: "newton-second-law",
+    collection: newtonCollection,
+    modelNote:
+      "Game menghitung a = F/m, lalu memberi benda kecepatan awal setara impuls 0,65 detik. Sesudah tembakan, benda melambat dengan perlambatan tetap 3,2 m/s².",
     title: "Newton's Second Law — Gravity Gun",
     topic: "Force · Mass · Acceleration",
     description:
@@ -87,6 +97,9 @@ export const games: readonly Game[] = [
   },
   {
     slug: "newton-third-law",
+    collection: newtonCollection,
+    modelNote:
+      "Kecepatan peluru dan recoil meriam memakai faktor visual terpisah. Lompatan memakai gravitasi 18 m/s². Angka yang ditampilkan mengilustrasikan arah pasangan gaya. Neraca momentum lengkap berada di luar cakupan model.",
     title: "Newton's Third Law — Action & Reaction",
     topic: "Action–Reaction · Recoil · Impulse",
     description:

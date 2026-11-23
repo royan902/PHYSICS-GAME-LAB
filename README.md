@@ -1,6 +1,16 @@
 # Physics Game Lab
 
-Website game simulasi fisika dengan desain Dark Gaming Modern. Billiard menyediakan Classic 8-ball lokal dua pemain, Simulation Mode, HUD SI, mouse/touch/keyboard dan rendering R3F. Branch integrasi Newton menambahkan tiga eksperimen standalone; empat game roadmap lainnya Coming Soon.
+Website game simulasi fisika. Buka [katalog production](https://physics-game-lab.vercel.app/games).
+
+## Sudah tayang
+
+- **Billiard Physics 3D** menyediakan Classic 8-ball lokal dua pemain dan Simulation Mode. Kernel TypeScript memakai satuan SI dan fixed timestep 1/120 s, dengan spin dan jump.
+- **Bus Inertia, Gravity Gun, dan Action & Reaction** tersedia sebagai tiga game HTML5 mandiri. Masing-masing punya halaman detail dan player sendiri. Lihat [batas model Newton](docs/NEWTON_INTEGRATION.md).
+- **Golf Physics, Rocket Landing, Cannon Physics, dan Ramp Race** tersedia sebagai detail konsep dengan status Coming Soon. Pengembangan gameplay mengikuti [roadmap](docs/ROADMAP.md).
+
+## Di branch ini
+
+Beranda dan katalog menampilkan koleksi **Hukum Newton**. Filter dimensi dan status bisa digabung dengan pencarian. URL katalog menyimpan `q`, `dimension`, dan `status`, misalnya `/games?q=inersia&dimension=3d&status=playable`. Lihat [panduan menambahkan game dan alur kerja tim](docs/GAME_INTEGRATION.md).
 
 ## Menjalankan lokal
 
@@ -17,16 +27,16 @@ Pemeriksaan: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `
 
 Halaman: `/`, `/games`, `/games/[slug]`, `/games/[slug]/play`, `/about`. Buka detail Billiard lalu **Play Now**, pilih Classic Mode atau Simulation Mode. Drag meja untuk bidikan, atur Power lalu Shoot. Sesudah break di Classic, pilih bola dan pocket atau Safety sebelum memukul. Aim Camera mengikuti bidikan. Free Camera mendukung orbit serta scroll/pinch untuk zoom. Fokus area meja untuk ← →, Spasi, P. Parameter eksperimen diterapkan melalui reset eksplisit.
 
-Website V2 menambahkan pencarian/filter katalog, navigasi mobile, animasi ringan, dan registry runtime native/HTML5/external. Lihat [panduan integrasi game](docs/GAME_INTEGRATION.md). Production tetap versi sebelumnya sampai preview disetujui.
-
-Branch integrasi Newton menambahkan Bus Inertia, Gravity Gun dan Action & Reaction sebagai build HTML5 lokal. Lihat [lokasi dan batas model Newton](docs/NEWTON_INTEGRATION.md). Ketiganya memiliki detail dan player sendiri; Billiard tetap memakai runtime existing.
-
-Baca [laporan Fase 3](docs/PHASE_3_REPORT.md), [model fisika](docs/PHYSICS_SPEC.md), [dokumentasi](docs/README.md), [roadmap](docs/ROADMAP.md), dan [AGENTS.md](AGENTS.md). Kernel bola khusus TypeScript menggunakan SI dan fixed timestep 1/120 s, dengan spin dan jump. QA emulasi mobile belum setara pengujian HP fisik.
+GitHub Actions menjalankan instalasi dari lockfile, lint, typecheck, unit test, dan build pada push ke branch dan pada pull request yang menargetkan `main`. Jalankan E2E secara lokal dengan Edge.
 
 ## Deployment
 
-Website production tersedia di https://physics-game-lab.vercel.app. Project Vercel `physics-game-lab` pada akun Ryu teams terhubung ke repository `royan902/PHYSICS-GAME-LAB`, dengan preset Next.js dan Node.js 24.x. Aplikasi tidak membutuhkan environment variable rahasia.
+Project Vercel `physics-game-lab` terhubung ke repository `royan902/PHYSICS-GAME-LAB`, dengan preset Next.js dan Node.js 24.x. Aplikasi tidak membutuhkan environment variable rahasia.
 
-Push atau merge ke `main` memicu deployment production otomatis. Branch lain digunakan untuk preview. Jalankan lint, typecheck, unit test, dan build sebelum push. Periksa status Ready di dashboard Vercel lalu uji URL deployment. Deployment pertama dilakukan langsung ke Production dengan persetujuan pengguna karena Vercel mewajibkannya untuk project baru.
+Push atau merge ke `main` memicu deployment production otomatis. Untuk review, buka preview branch dari pull request atau dashboard Vercel setelah statusnya Ready. Periksa katalog, detail, dan player dari URL tersebut.
 
 `.vercelignore` mengecualikan cache tools, kredensial lokal, arsip referensi dan hasil QA dari upload CLI. Preferensi game disimpan di browser pemain.
+
+## Catatan historis
+
+[Laporan Fase 3](docs/PHASE_3_REPORT.md) mencatat pengembangan Billiard dan pengujian saat itu. [Integrasi Newton](docs/NEWTON_INTEGRATION.md) mencatat pemisahan build HTML5 dan hasil QA awal. Lihat [indeks dokumentasi](docs/README.md) untuk arsitektur, spesifikasi fisika, dan laporan fase lain.
