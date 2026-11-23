@@ -31,9 +31,9 @@ export default function About() {
         </p>
         <h2>Sedang dibangun, selangkah demi selangkah</h2>
         <p>
-          Billiard Physics kini dapat dimainkan: lima tantangan Pocket Challenge
-          dan eksperimen momentum, tumbukan, gesekan, energi serta restitusi.
-          Empat game lainnya masih Coming Soon.
+          Billiard Physics kini dapat dimainkan: Classic 8-ball lokal dua pemain
+          dan Simulation sandbox untuk mempelajari momentum, spin, jump,
+          gesekan, serta restitusi. Empat game lainnya masih Coming Soon.
         </p>
         <Link href="/games" className="button primary">
           Explore Games <Arrow />

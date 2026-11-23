@@ -1,389 +1,787 @@
-.billiard-app {
-  margin-top: 24px;
-  border: 1px solid #303a43;
-  border-radius: 16px;
+body:has(.billiard-app) {
   overflow: hidden;
-  background: #151c23;
+}
+.billiard-app {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #080e0e;
+  color: #e9f2eb;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+}
+.billiard-app * {
+  box-sizing: border-box;
+}
+.billiard-app button,
+.billiard-app input,
+.billiard-app select {
+  font: inherit;
 }
 .billiard-app button,
 .billiard-app select {
-  min-height: 44px;
-  border: 1px solid #3a4a55;
+  border: 1px solid #4a655a;
+  background: #14271f;
+  color: #e8f2ec;
   border-radius: 8px;
-  padding: 8px 14px;
-  background: #23313b;
-  color: #eef5fa;
+  padding: 10px 13px;
   cursor: pointer;
-  font: inherit;
+  min-height: 44px;
+}
+.billiard-app button:hover {
+  background: #234336;
 }
 .billiard-app button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
+  opacity: 0.4;
+  cursor: default;
 }
-.billiard-app button:hover:enabled {
-  background: #314552;
+.billiard-app :focus-visible {
+  outline: 2px solid #9cf5c0;
+  outline-offset: 4px;
 }
-.billiard-app button[aria-pressed="true"] {
-  background: #284d51;
-  border-color: #69c8ae;
-  color: #d5fff0;
+.billiard-app small {
+  color: #b4c6ba;
+  font-size: 11px;
+  line-height: 1.5;
 }
-.billiard-app input:focus-visible,
-.billiard-app select:focus-visible,
-.billiard-app summary:focus-visible,
-.billiard-viewport:focus-visible {
-  outline: 3px solid #8ecbff;
-  outline-offset: 3px;
-}
-.billiard-topline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding: 16px 20px;
-  border-bottom: 1px solid #303a43;
-}
-.billiard-modes {
-  display: flex;
-  gap: 8px;
-}
-.billiard-live {
-  color: #8de1c2;
-  font-size: 13px;
-}
-.billiard-objective {
-  padding: 20px 24px 12px;
-  display: flex;
-  gap: 14px;
-  justify-content: space-between;
-  align-items: center;
-}
-.billiard-objective h2 {
-  margin: 5px 0 0;
-  font-size: clamp(23px, 3vw, 32px);
-}
-.billiard-score {
-  display: flex;
-  flex-direction: column;
-  text-align: right;
-}
-.billiard-score strong {
-  font-size: 22px;
-  font-variant-numeric: tabular-nums;
-}
-.billiard-score span {
-  color: #abbcc8;
-  font-size: 12px;
-}
-.billiard-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 268px;
-  gap: 0;
-}
-.billiard-main {
-  min-width: 0;
-  padding: 0 18px 18px;
+.billiard-app input {
+  accent-color: #7be5ad;
 }
 .billiard-viewport {
-  height: clamp(320px, 35vw, 490px);
-  position: relative;
-  overflow: hidden;
-  border-radius: 12px;
-  background: radial-gradient(
-    ellipse at 50% 40%,
-    #253d3d 0%,
-    #121c24 65%,
-    #10161d
-  );
-  touch-action: none;
-}
-.billiard-viewport canvas {
-  display: block;
-  touch-action: none;
-}
-.billiard-camera {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  display: flex;
-  gap: 6px;
+  inset: 0;
+  touch-action: none;
+  outline: none;
 }
-.billiard-camera button {
-  font-size: 12px;
-  padding: 5px 10px;
-  background: #17262ddd;
-}
-.billiard-table-label {
-  position: absolute;
-  bottom: 10px;
-  left: 12px;
-  right: 12px;
-  text-align: center;
-  font-size: 11px;
-  color: #b9cece;
-  pointer-events: none;
-}
-.billiard-pause {
+.billiard-fallback {
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
   align-items: center;
   justify-content: center;
-  background: #0c1726bb;
-  z-index: 2;
-  backdrop-filter: blur(3px);
+  gap: 20px;
+  padding: 30px;
 }
-.billiard-pause strong {
-  font-size: 24px;
-}
-.billiard-controls {
-  padding: 0 20px 20px 4px;
-  min-width: 0;
-}
-.billiard-select {
+.pool-select {
+  height: 100%;
+  overflow: auto;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 12px;
-  color: #b5c9d5;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 64px 24px;
+  background: radial-gradient(
+    ellipse at 50% 30%,
+    #174a35 0,
+    #0d211b 40%,
+    #070d0b 85%
+  );
 }
-.billiard-select select {
-  width: 100%;
-  font-size: 14px;
+.pool-back {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  color: #d0e7da;
+  text-decoration: none;
+  padding: 10px;
 }
-.billiard-help {
-  font-size: 12px;
-  color: #b8c4d0;
-  line-height: 1.65;
-  margin: 12px 0 18px;
+.pool-eyebrow {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: #a8bdb0;
 }
-.billiard-range {
-  display: block;
-  margin: 12px 0;
-  font-size: 12px;
+.pool-eight {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 34px;
+  font-weight: bold;
+  color: #14241b;
+  background: radial-gradient(circle at 30% 20%, #fff, #c4cebd);
+  border: 17px solid #111a15;
+  box-shadow: 0 18px 40px #0008;
 }
-.billiard-range > span {
+.pool-select h1 {
+  font-size: clamp(44px, 7vw, 82px);
+  letter-spacing: -4px;
+  line-height: 1;
+  margin: 0;
+  font-weight: 600;
+}
+.pool-select h1 em {
+  font-family: Georgia, serif;
+  font-weight: 400;
+  color: #88d9a4;
+}
+.pool-select p {
+  font-size: 16px;
+  color: #b3cabe;
+  margin: 0 0 12px;
+}
+.pool-mode-cards {
   display: flex;
+  gap: 16px;
+  width: min(720px, 100%);
+  margin: 8px 0 20px;
+}
+.pool-mode-cards button {
+  flex: 1;
+  text-align: left;
+  padding: 26px;
+  background: #153025d9;
+  border-color: #446955;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.pool-mode-cards span {
+  color: #92b29f;
+  font-size: 9px;
+  letter-spacing: 2px;
+}
+.pool-mode-cards strong {
+  font-size: 22px;
+  font-weight: 500;
+}
+.pool-hud {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 10px;
-  color: #c5d4df;
+  gap: 16px;
+  pointer-events: none;
 }
-.billiard-range strong {
-  color: #f0f7f5;
-  font-variant-numeric: tabular-nums;
+.pool-hud > * {
+  pointer-events: auto;
 }
-.billiard-range input {
-  width: 100%;
-  min-height: 36px;
-  accent-color: #72d8b9;
-  cursor: pointer;
+.pool-players {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.pool-player {
+  background: #0b1814dd;
+  border: 1px solid #344f41;
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 124px;
+}
+.pool-player.active {
+  border-color: #81d6a3;
+  box-shadow: 0 0 20px #7de6a51a;
+}
+.pool-player strong {
+  font-size: 13px;
+}
+.pool-status {
+  text-align: center;
+  border: 1px solid #365548;
+  background: #0b1814e8;
+  border-radius: 20px;
+  padding: 9px 16px;
+  max-width: 440px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.pool-hud nav {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.pool-hud nav button {
+  font-size: 11px;
+  background: #0b1814e8;
+}
+.pool-power {
+  position: absolute;
+  right: 22px;
+  top: 27%;
+  width: 112px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 15px 8px;
+  border: 1px solid #314c3f;
+  background: #09160fdb;
+  border-radius: 14px;
+}
+.pool-power > span,
+.pool-contact > span {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: #afc6b7;
+}
+.pool-power strong {
+  font-size: 22px;
+  color: #a1f3bb;
+}
+.pool-power b {
+  font-size: 12px;
+}
+.pool-power-slider {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  height: clamp(100px, 25vh, 260px);
+  width: 38px;
+  touch-action: none;
 }
 .billiard-app .billiard-shoot {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  font-size: 18px;
+  background: #94e8b4;
+  color: #0b2918;
+  border-color: #94e8b4;
   font-weight: bold;
-  min-height: 50px;
-  color: #0b2925;
-  background: #79dbbc;
-  border-color: #79dbbc;
 }
-.billiard-app .billiard-shoot:hover:enabled {
-  background: #a5f4d9;
-}
-.billiard-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin: 10px 0;
-}
-.billiard-actions button {
-  padding: 6px;
-  font-size: 13px;
-}
-.billiard-next {
+.pool-power .billiard-shoot {
   width: 100%;
-  margin: 6px 0 12px;
+  margin-top: 5px;
+  padding: 8px 4px;
 }
-.billiard-notice {
-  padding: 10px 0;
-  color: #a9ebd2;
-  font-size: 13px;
-  min-height: 42px;
+.pool-bottom {
+  position: absolute;
+  bottom: 18px;
+  left: 20px;
+  right: 155px;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  pointer-events: none;
 }
-.billiard-physics {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  border: 1px solid #34424d;
-  border-radius: 9px;
+.pool-bottom > * {
+  pointer-events: auto;
 }
-.billiard-physics > div {
+.pool-contact,
+.pool-aim-controls {
+  background: #0a1913e8;
+  border: 1px solid #314c3f;
+  border-radius: 12px;
   padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  border-right: 1px solid #34424d;
+  gap: 8px;
 }
-.billiard-physics > div:last-child {
-  border: 0;
+.pool-contact {
+  align-items: center;
 }
-.billiard-physics span {
-  color: #aebfcd;
+.pool-spin {
+  position: relative;
+  background: radial-gradient(circle at 35% 28%, #fff, #dfdfce 60%, #91a597);
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  touch-action: none;
+  cursor: crosshair;
+  border: 1px solid #5e7864;
+  background-image:
+    linear-gradient(90deg, transparent 49%, #9bb4a160 50%, transparent 51%),
+    linear-gradient(transparent 49%, #9bb4a160 50%, transparent 51%),
+    radial-gradient(circle at 35% 28%, #fff, #dfdfce 60%, #91a597);
+}
+.pool-spin i {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #ea603b;
+  border: 2px solid white;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.pool-contact button {
+  padding: 3px 8px;
   font-size: 10px;
-  line-height: 1.4;
+  min-height: 32px;
 }
-.billiard-physics strong {
-  font-size: 17px;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.4;
+.pool-aim-controls {
+  width: 200px;
 }
-.billiard-physics small {
+.billiard-range {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   font-size: 11px;
-  color: #c1cfda;
-  font-weight: normal;
 }
-.billiard-actual {
-  margin: 10px 0 0;
+.billiard-range span {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: #b4c6ba;
+}
+.billiard-range strong {
+  color: #f0f4e9;
+}
+.billiard-range input {
+  width: 100%;
+  height: 20px;
+}
+.pool-hint {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  text-shadow: 0 2px 4px #000;
+  background: #09170db0;
+  border-radius: 10px;
+}
+.pool-hint strong {
+  letter-spacing: 2px;
+  font-size: 10px;
+  color: #bfe2c8;
+}
+.pool-hint button {
+  align-self: flex-start;
+  font-size: 11px;
+}
+.pool-panel {
+  position: absolute;
+  left: 18px;
+  top: 100px;
+  bottom: 18px;
+  width: min(370px, calc(100% - 36px));
+  z-index: 12;
+  overflow: auto;
+  background: #101e18f7;
+  border: 1px solid #52735e;
+  border-radius: 14px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 20px 70px #0009;
+}
+.pool-panel h2 {
+  font-size: 25px;
+  margin: 0;
+}
+.pool-panel p {
   font-size: 12px;
-  color: #becbda;
+  line-height: 1.7;
+  color: #bdcfc3;
+  margin: 6px 0;
 }
-.billiard-details {
-  border-top: 1px solid #34424d;
-  padding: 12px 0;
-  font-size: 12px;
-  color: #b8c9d5;
+.pool-panel select {
+  width: 100%;
+  margin-top: 8px;
 }
-.billiard-details summary,
-.billiard-model summary {
+.pool-panel-close {
+  align-self: flex-end;
+}
+.pool-panel details {
+  border-top: 1px solid #3b5043;
+  padding-top: 14px;
+}
+.pool-panel summary {
   cursor: pointer;
   min-height: 36px;
-  padding-top: 8px;
-  color: #d9e8ed;
 }
-.billiard-details p {
-  margin: 8px 0 0;
+.pool-ball-data {
+  max-height: 170px;
+  overflow: auto;
+  border-top: 1px solid #314c3f;
 }
-.billiard-model {
-  border-top: 1px solid #34424d;
-  padding: 12px 24px;
-  color: #b8c9d5;
-  font-size: 13px;
-}
-.billiard-model p {
-  max-width: 95ch;
-}
-.billiard-results {
-  padding: 20px 24px;
-  border-top: 1px solid #34424d;
-}
-.billiard-results h3 {
-  margin-bottom: 14px;
-}
-.billiard-results .billiard-physics strong {
-  font-size: 14px;
-}
-.billiard-chart {
-  width: 100%;
-  height: 100px;
-  margin-top: 18px;
-}
-.billiard-ball-data {
+.pool-placement {
+  position: absolute;
+  left: 50%;
+  top: 25%;
+  transform: translateX(-50%);
+  background: #10251bf0;
+  border: 1px solid #91e6af;
+  padding: 14px;
+  border-radius: 12px;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 24px;
-  margin: 8px 0 14px;
-  color: #b9c8d4;
-  font-size: 12px;
+  gap: 8px;
+  width: 320px;
+  max-width: 85vw;
 }
-.billiard-fallback,
-.game-loading {
-  padding: 40px 24px;
-  min-height: 300px;
+.pool-placement strong,
+.pool-placement small {
+  width: 100%;
+}
+.pool-placement label {
   display: flex;
-  align-items: center;
-  justify-content: center;
   flex-direction: column;
+  gap: 4px;
+  width: calc(50% - 4px);
+  font-size: 11px;
+}
+.pool-placement input {
+  width: 100%;
+  border: 1px solid #52715d;
+  background: #08170e;
+  border-radius: 6px;
+  padding: 9px;
+  color: white;
+}
+.pool-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  border: 1px solid #567963;
+  background: #101e17;
+  color: #e9f2eb;
+  border-radius: 18px;
+  padding: 30px;
+  width: 360px;
+  max-width: 90vw;
+  max-height: 90dvh;
+  overflow: auto;
+  box-shadow: 0 25px 90px #000b;
+}
+.pool-dialog::backdrop {
+  background: #0009;
+  backdrop-filter: blur(5px);
+}
+.pool-dialog h2 {
+  font-size: 25px;
+  margin: 15px 0 24px;
+}
+.pool-dialog p {
+  color: #bacdc0;
+  line-height: 1.6;
+}
+.pool-dialog button,
+.pool-dialog a {
+  display: block;
+  width: 100%;
+  margin: 9px 0;
   text-align: center;
 }
-.billiard-fallback p {
-  max-width: 48ch;
+.pool-dialog a {
+  color: #bbe5c9;
+  padding: 12px;
 }
-.billiard-about {
-  padding: 30px 0 0;
+.game-loading {
+  padding: 40px;
+  text-align: center;
+  color: #bcd9c9;
 }
 @media (max-width: 1000px) {
-  .billiard-layout {
-    grid-template-columns: minmax(0, 1fr) 230px;
+  .pool-hud {
+    gap: 8px;
   }
-  .billiard-physics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .pool-status {
+    position: absolute;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(500px, 80vw);
   }
-  .billiard-physics > div:nth-child(2) {
-    border-right: 0;
+  .pool-hint {
+    max-width: 240px;
   }
-  .billiard-physics > div:nth-child(-n + 2) {
-    border-bottom: 1px solid #34424d;
+  .pool-hud nav {
+    margin-left: auto;
+  }
+  .pool-player {
+    min-width: 105px;
+    padding: 8px 10px;
   }
 }
-@media (max-width: 700px) {
-  .billiard-layout {
-    grid-template-columns: 1fr;
+@media (max-height: 550px) and (min-width: 600px) {
+  .pool-hud {
+    top: 8px;
+    left: 10px;
+    right: 10px;
   }
-  .billiard-viewport {
-    height: 340px;
+  .pool-player {
+    padding: 5px 8px;
+    min-width: 100px;
   }
-  .billiard-controls {
-    padding: 0 16px 18px;
+  .pool-status {
+    top: 0;
+    left: 50%;
+    max-width: min(235px, 28vw);
+    font-size: 10px;
+    padding: 6px 10px;
   }
-  .billiard-main {
-    padding: 0 10px 10px;
+  .pool-hud nav button {
+    padding: 5px 8px;
+    font-size: 10px;
   }
-  .billiard-topline {
-    padding: 12px;
+  .pool-power {
+    top: 76px;
+    right: 12px;
+    width: 90px;
+    padding: 8px;
+    gap: 2px;
   }
-  .billiard-topline button {
-    font-size: 12px;
-    padding: 7px 11px;
+  .pool-power-slider {
+    height: 100px;
   }
-  .billiard-objective {
-    padding: 14px 14px 12px;
-    align-items: flex-start;
+  .pool-power strong {
+    font-size: 16px;
   }
-  .billiard-score strong {
-    font-size: 18px;
-  }
-  .billiard-score span {
-    max-width: 125px;
-  }
-  .billiard-objective .small-label {
+  .pool-power small {
     font-size: 9px;
   }
-  .billiard-physics strong {
-    font-size: 17px;
+  .pool-bottom {
+    bottom: 10px;
+    left: 10px;
+    right: 115px;
+    gap: 8px;
   }
-  .billiard-model,
-  .billiard-results {
-    padding: 14px;
+  .pool-contact,
+  .pool-aim-controls {
+    padding: 8px;
+    gap: 4px;
   }
-  .billiard-help {
-    margin-bottom: 6px;
+  .pool-spin {
+    width: 52px;
+    height: 52px;
   }
-  .billiard-notice {
-    font-size: 12px;
+  .pool-aim-controls {
+    width: 165px;
   }
-  .billiard-live {
-    font-size: 11px;
+  .pool-hint small {
+    display: none;
+  }
+  .pool-contact > span {
+    font-size: 8px;
+  }
+  .pool-panel {
+    top: 65px;
+  }
+  .pool-select {
+    padding: 30px;
+    gap: 10px;
+  }
+  .pool-eight {
+    display: none;
+  }
+  .pool-select h1 {
+    font-size: 46px;
+  }
+  .pool-mode-cards {
+    margin: 0;
+  }
+  .pool-mode-cards button {
+    padding: 18px;
+    gap: 8px;
+  }
+  .pool-placement {
+    top: 20%;
+    width: 300px;
+  }
+  .pool-placement small {
+    display: none;
   }
 }
-@media (max-height: 550px) and (min-width: 701px) {
-  .billiard-viewport {
-    height: 330px;
+@media (max-width: 599px) {
+  .pool-select {
+    justify-content: flex-start;
+    padding-top: 100px;
+    gap: 14px;
   }
-  .billiard-layout {
-    grid-template-columns: minmax(0, 1fr) 230px;
+  .pool-mode-cards {
+    flex-direction: column;
+  }
+  .pool-mode-cards button {
+    padding: 20px;
+  }
+  .pool-hud {
+    left: 10px;
+    right: 10px;
+    top: 10px;
+    flex-wrap: wrap;
+  }
+  .pool-players {
+    width: 100%;
+  }
+  .pool-player {
+    flex: 1;
+  }
+  .pool-hud nav {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .pool-hud nav button {
+    font-size: 10px;
+    padding: 7px;
+  }
+  .pool-status {
+    top: 116px;
+    width: 94%;
+    font-size: 11px;
+  }
+  .pool-power {
+    right: 10px;
+    top: 34%;
+    width: 92px;
+    padding: 10px 6px;
+    gap: 4px;
+  }
+  .pool-power-slider {
+    height: 140px;
+  }
+  .pool-power small {
+    font-size: 9px;
+  }
+  .pool-power strong {
+    font-size: 18px;
+  }
+  .pool-bottom {
+    left: 10px;
+    right: 10px;
+    bottom: 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .pool-contact {
+    padding: 8px;
+  }
+  .pool-spin {
+    width: 62px;
+    height: 62px;
+  }
+  .pool-aim-controls {
+    flex: 1;
+    max-width: 220px;
+    padding: 10px;
+  }
+  .pool-hint {
+    width: 100%;
+    padding: 6px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    max-width: none;
+  }
+  .pool-hint small {
+    display: none;
+  }
+  .pool-hint strong {
+    font-size: 9px;
+  }
+  .pool-hint button {
+    padding: 5px 10px;
+    font-size: 10px;
+  }
+  .pool-panel {
+    top: 125px;
+  }
+  .pool-placement {
+    top: 25%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .billiard-app * {
+    scroll-behavior: auto;
+  }
+}
+body:has(.billiard-app)
+  :is(
+    .site-header,
+    .site-footer,
+    .skip-link,
+    .detail-heading,
+    .detail-page > .back-link,
+    .billiard-about
+  ) {
+  display: none;
+}
+@media (max-width: 599px) {
+  .pool-power {
+    top: 185px;
+    bottom: 225px;
+  }
+  .pool-power-slider {
+    height: auto;
+    min-height: 60px;
+    flex: 1;
+  }
+}
+@media (max-height: 550px) and (min-width: 600px) {
+  .pool-hint {
+    position: fixed;
+    top: 66px;
+    left: 10px;
+    right: auto;
+    bottom: auto;
+    background: transparent;
+    padding: 0;
+  }
+  .pool-hint strong {
+    display: none;
+  }
+}
+
+.pool-call {
+  position: absolute;
+  left: 16px;
+  top: 90px;
+  display: flex;
+  gap: 4px;
+  background: #10231cea;
+  border-radius: 10px;
+  padding: 4px;
+}
+.pool-call label {
+  font-size: 10px;
+  display: grid;
+}
+.pool-call select {
+  max-width: 100px;
+  padding: 4px;
+}
+@property --shot-power {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+.pool-power-slider {
+  background-image: linear-gradient(
+    to top,
+    #70e7a6,
+    #ffbf61 var(--shot-power),
+    #22362c var(--shot-power)
+  );
+  transition: --shot-power 75ms linear;
+  appearance: none;
+  border-radius: 20px;
+  border: 4px solid #192a22;
+  max-width: 22px;
+  cursor: ns-resize;
+}
+.pool-power-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 28px;
+  height: 12px;
+  border: 2px solid white;
+  border-radius: 6px;
+  background: #c5dbcc;
+  box-shadow: 0 2px 6px #0007;
+}
+.pool-dialog summary {
+  cursor: pointer;
+  padding: 10px;
+}
+.pool-dialog .billiard-range {
+  margin: 12px 0;
+}
+@media (max-height: 550px) {
+  .pool-call {
+    top: 118px;
+    left: 10px;
+  }
+  .pool-call button {
+    font-size: 10px;
+  }
+}
+@media (max-width: 599px) {
+  .pool-call {
+    top: 170px;
+    left: 8px;
   }
 }

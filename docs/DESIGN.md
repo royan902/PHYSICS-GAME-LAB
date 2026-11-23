@@ -8,7 +8,9 @@ Token aktual, responsive breakpoint, focus ring dan reduced-motion ada di src/ap
 
 ## Interaksi game Fase 3
 
-Implementasi Billiard memakai meja sebagai fokus, panel kontrol DOM di samping pada desktop dan di bawah pada mobile, HUD fisika 2×2 pada layar kecil. Ring pocket dan pesan teks memberi feedback. Kamera perspektif/top-down, input kamera/bidikan terpisah, slider sebagai alternatif drag, pause overlay dan fallback WebGL tersedia. Screenshot dan batas pengujian visual pada PHASE_3_REPORT. Arahan di bawah adalah baseline desain; warna actual mengikuti CSS scoped Billiard. Skip link memakai clip-path ketika tidak fokus agar tidak bocor ke screenshot halaman penuh saat halaman di-scroll, tetap tersedia melalui Tab.
+Revisi Billiard mengikuti rekaman target 225344: mode selection lebih dahulu, lalu Canvas hampir seluruh viewport, Aim Camera dari belakang stik dan Free Camera dengan orbit, pan dan zoom. HUD kecil: pemain kiri atas, status atas tengah, kamera/suara/pause kanan atas, power drag vertikal kanan, spin/elevasi/bidikan kiri bawah. Panel aturan/physics tertutup secara default. Pause menggunakan native dialog dengan focus trap; restart/mode/parameter/keluar meminta konfirmasi. Katalog dan empat game lainnya tetap memakai desain website existing.
+
+Tekstur bola solid/stripe bernomor melekat pada sphere dan mengikuti quaternion kernel. Felt, kayu, cue, lantai, rail dan pocket memakai geometri/tekstur procedural orisinal; tidak menyalin aset game referensi. Shadow sederhana dan DPR dibatasi 1.5. Portrait tetap berfungsi; landscape diprioritaskan. Tombol utama tidak saling menutup pada 375×812 dan 844×390. Aim Camera menampilkan meja saat placement. Drag pada Aim Camera mengubah bidikan, sedangkan drag pada Free Camera mengorbit. Slider dan keyboard tetap dapat mengubah bidikan. Bantuan lintasan memakai salinan solver selama maksimum 0,75 detik dan membatasi prediksi setelah tumbukan. Musik dan efek suara disintesis di browser. Volume serta mute disimpan lokal.
 
 Bagian berikut disimpan sebagai rencana awal, bukan desain website Fase 2. Palet website final di atas mengambil prioritas untuk shell katalog.
 

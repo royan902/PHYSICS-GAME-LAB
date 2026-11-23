@@ -1,136 +1,125 @@
 import { expect, it } from "vitest";
 import { BilliardSession } from "../../src/games/billiard/session";
-import { DEFAULT_CONFIG, DT, speed } from "../../src/games/billiard/physics";
+import { DEFAULT_CONFIG, DT, RADIUS } from "../../src/games/billiard/physics";
 function finish(s: BilliardSession) {
-  for (let i = 0; i < 10000 && s.status === "moving"; i++) s.tick();
+  for (let i = 0; i < 12000 && s.status === "moving"; i++) s.tick();
   expect(s.status).not.toBe("moving");
 }
-it("shot once, reject concurrent/zero shots, pause preserves ticks, restart clean", () => {
+it("rack has all 16 ids, eight in centre, opposite groups at rear corners and no overlaps", () => {
   const s = new BilliardSession();
-  s.power = 0;
+  expect(s.world.balls.map((b) => b.id)).toEqual(
+    Array.from({ length: 16 }, (_, i) => i),
+  );
+  expect(s.world.balls[8].z).toBe(0);
+  for (const a of s.world.balls)
+    for (const b of s.world.balls)
+      if (a.id !== b.id)
+        expect(Math.hypot(a.x - b.x, a.z - b.z)).toBeGreaterThan(2 * RADIUS);
+  const rear = s.world.balls
+    .filter((b) => b.x === Math.max(...s.world.balls.map((v) => v.x)))
+    .sort((a, b) => a.z - b.z);
+  expect(rear).toHaveLength(5);
+  expect(rear[0].id < 8).not.toBe(rear[4].id < 8);
+  expect(s.world.balls[8].x).toBeCloseTo(
+    0.635 + 2 * (Math.sqrt(3) * RADIUS + 0.0003),
+  );
+});
+it("shot applied once, pause freezes state, safe restart and zero shot rejected", () => {
+  const s = new BilliardSession();
+  s.setPower(0);
   expect(s.queueShot()).toBe(false);
-  s.power = 25;
+  s.setPower(75);
   expect(s.queueShot()).toBe(true);
   expect(s.queueShot()).toBe(false);
-  expect(s.strokes).toBe(0);
   s.tick();
   expect(s.strokes).toBe(1);
-  const tick = s.world.tick;
   s.setPaused(true);
+  const w = structuredClone(s.world);
   s.advance(1);
   s.tick();
-  expect(s.world.tick).toBe(tick);
+  expect(s.world).toEqual(w);
   s.setPaused(false);
   finish(s);
-  const fresh = new BilliardSession();
-  expect(fresh.strokes).toBe(0);
-  expect(fresh.world.tick).toBe(0);
-  expect(fresh.lastShot).toBeNull();
+  expect(s.world.eventLimitHits).toBe(0);
+  expect(new BilliardSession().strokes).toBe(0);
 });
-it("First Shot is solvable with shipped initial aim/power and next level exists", () => {
+it("miss changes turn, grants ball in hand, rejects overlap/boundary and locks shot until placement", () => {
   const s = new BilliardSession();
+  s.breaking = false;
+  s.setCall(0, -1);
+  s.setAngle(Math.PI);
+  s.setPower(5);
   s.queueShot();
   finish(s);
-  expect(s.status).toBe("won");
-  expect(s.pocketCount).toBe(1);
-  expect(s.strokes).toBe(1);
-  expect(new BilliardSession("game", 1).world.balls.length).toBe(3);
+  expect(s.player).toBe(1);
+  expect(s.ballInHand).toBe(true);
+  expect(s.queueShot()).toBe(false);
+  expect(s.placeBall(1, 0, 0)).toBe(false);
+  expect(s.placeBall(0, 1.3, 0)).toBe(false);
+  expect(s.placeBall(0, s.world.balls[1].x, s.world.balls[1].z)).toBe(false);
+  expect(s.placeBall(0, -0.7, 0.3)).toBe(true);
+  expect(s.canShoot).toBe(true);
 });
-it("loss only after last shot settles", () => {
-  const s = new BilliardSession();
-  s.strokes = 2;
-  s.angle = 0;
-  s.power = 5;
-  s.queueShot();
-  s.tick();
-  expect(s.status).toBe("moving");
-  finish(s);
-  expect(s.status).toBe("lost");
-});
-it("scratch penalizes once, safe respawn even if preferred spot blocked", () => {
-  const s = new BilliardSession();
-  s.world.balls[0].x = 0;
-  s.world.balls[0].z = -0.6;
-  s.world.balls[1].x = -0.7;
-  s.world.balls[1].z = 0;
+it("simulation permits any ball setup with no overlap and no turn/win logic", () => {
+  const s = new BilliardSession("simulation");
+  expect(s.placeBall(8, -0.4, 0.4)).toBe(true);
+  expect(s.placeBall(2, -0.4, 0.4)).toBe(false);
+  for (const id of [-1, 16, NaN, 0.5])
+    expect(s.placeBall(id, 0, 0.3)).toBe(false);
+  s.setPower(5);
+  s.setAngle(Math.PI);
   s.queueShot();
   finish(s);
-  expect(s.penalties).toBe(1);
-  expect(s.world.balls[0].active).toBe(true);
-  expect(
-    Math.hypot(s.world.balls[0].x + 0.7, s.world.balls[0].z),
-  ).toBeGreaterThan(0.05715);
+  expect(s.status).toBe("ready");
+  expect(s.player).toBe(0);
+  expect(s.ballInHand).toBe(false);
 });
-it("scratch and final target on same tick count before win", () => {
-  const s = new BilliardSession();
-  s.world.balls[0].x = 0;
-  s.world.balls[0].z = -0.6;
-  s.world.balls[1].x = 0;
-  s.world.balls[1].z = 0.6;
-  s.queueShot();
-  finish(s);
-  expect(s.status).toBe("won");
-  expect(s.penalties).toBe(1);
-  expect(s.pocketCount).toBe(1);
-});
-it("30/60/120 FPS produce same snapshot at same simulated tick", () => {
-  const states = [30, 60, 120].map((fps) => {
+it("30/60/120 FPS and both modes share exact physics at equal ticks", () => {
+  const baseline = new BilliardSession().world;
+  const worlds = [30, 60, 120].map((fps) => {
     const s = new BilliardSession("simulation");
+    s.world = structuredClone(baseline);
+    s.setPower(40);
+    s.setSpin(0.4, 0.5, 40);
     s.queueShot();
     for (let i = 0; i < fps; i++) s.advance(1 / fps);
     return s.world;
   });
-  expect(states[0].tick).toBe(120);
-  expect(states[0]).toEqual(states[1]);
-  expect(states[1]).toEqual(states[2]);
-});
-it("game and simulation same config/input use identical kernel", () => {
-  const g = new BilliardSession(),
-    s = new BilliardSession("simulation");
-  s.world = structuredClone(g.world);
-  s.angle = g.angle;
-  s.initialSpeed = g.power * 0.05;
-  g.queueShot();
-  s.queueShot();
-  for (let i = 0; i < 120; i++) {
-    g.tick();
-    s.tick();
-  }
-  expect(g.world).toEqual(s.world);
-});
-it("simulation parameters affect actual velocity and energy, slower friction travels further", () => {
-  const a = new BilliardSession(
-    "simulation",
-    0,
-    { ...DEFAULT_CONFIG, mass: 0.3, friction: 0.08 },
-    "Koefisien gesek",
-  );
-  a.initialSpeed = 0.5;
+  expect(worlds[0].tick).toBe(120);
+  expect(worlds[0]).toEqual(worlds[1]);
+  expect(worlds[1]).toEqual(worlds[2]);
+  const a = new BilliardSession(),
+    b = new BilliardSession("simulation");
+  b.world = structuredClone(a.world);
   a.queueShot();
-  a.tick();
-  expect(a.lastShot?.impulse).toBeCloseTo(0.15);
-  expect(a.lastShot?.energy).toBeCloseTo(0.0375);
-  finish(a);
-  const b = new BilliardSession(
-    "simulation",
-    0,
-    { ...DEFAULT_CONFIG, friction: 0.02 },
-    "Koefisien gesek",
-  );
-  b.initialSpeed = 0.5;
   b.queueShot();
-  finish(b);
-  expect(b.world.balls[0].x).toBeGreaterThan(a.world.balls[0].x);
-  expect(speed(a.world.balls[0])).toBe(0);
+  for (let i = 0; i < 120; i++) {
+    a.tick();
+    b.tick();
+  }
+  expect(a.world).toEqual(b.world);
 });
-it("large frame discards backlog; no tick on pause or nonfinite time", () => {
-  const s = new BilliardSession();
+it("configuration drives shot mass, large frames drop backlog, invalid delta ignored", () => {
+  const s = new BilliardSession("simulation", { ...DEFAULT_CONFIG, mass: 0.3 });
+  s.setPower(10);
   s.queueShot();
   s.advance(5);
+  expect(s.lastShot?.impulse).toBeCloseTo(0.24);
   expect(s.world.tick).toBe(8);
   expect(s.droppedFrames).toBe(1);
   s.advance(NaN);
   s.setPaused(true);
   s.advance(DT);
   expect(s.world.tick).toBe(8);
+});
+it("default break is legal, settles and keeps groups open", () => {
+  const s = new BilliardSession();
+  s.queueShot();
+  finish(s);
+  expect(
+    s.penalties,
+    JSON.stringify({ notice: s.notice, record: s.record }),
+  ).toBe(0);
+  expect(s.groups).toEqual([null, null]);
+  expect(s.breaking).toBe(false);
 });

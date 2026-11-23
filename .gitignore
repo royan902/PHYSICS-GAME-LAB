@@ -28,3 +28,8 @@ test-results/
 Thumbs.db
 *.swp
 *.swo
+
+# Deployment links and local reference archives
+.vercel/
+docs/*.zip
+*.mp4

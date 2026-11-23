@@ -1,56 +1,64 @@
 import { useEffect, useRef, type KeyboardEvent } from "react";
 import type { ThreeEvent } from "@react-three/fiber";
 import type { BilliardSession } from "./session";
-
-// Input sends commands to the session; it never changes body positions.
-export function useAimInput(session: BilliardSession, cameraControl: boolean) {
-  const dragging = useRef<number | null>(null);
-  const pointers = useRef(new Set<number>());
+export function useAimInput(session: BilliardSession, top: boolean) {
+  const drag = useRef<{ id: number; x: number; angle: number } | null>(null);
   const captured = useRef<Element | null>(null);
   useEffect(() => {
     const clear = () => {
-      if (
-        dragging.current !== null &&
-        captured.current?.hasPointerCapture(dragging.current)
-      )
-        captured.current.releasePointerCapture(dragging.current);
-      dragging.current = null;
-      pointers.current.clear();
+      if (drag.current && captured.current?.hasPointerCapture(drag.current.id))
+        captured.current.releasePointerCapture(drag.current.id);
+      drag.current = null;
     };
     window.addEventListener("blur", clear);
-    return () => window.removeEventListener("blur", clear);
+    return () => {
+      clear();
+      window.removeEventListener("blur", clear);
+    };
   }, []);
   function point(e: ThreeEvent<PointerEvent>) {
-    if (cameraControl || !session.canShoot) return;
-    const cue = session.world.balls[0];
-    session.setAngle(Math.atan2(e.point.z - cue.z, e.point.x - cue.x));
+    if (session.placing !== null) return;
+
+    if (!top && drag.current)
+      session.setAngle(
+        drag.current.angle + (e.clientX - drag.current.x) * 0.005,
+      );
   }
   function release(e: ThreeEvent<PointerEvent>) {
-    pointers.current.delete(e.pointerId);
-    if (dragging.current === e.pointerId) {
-      dragging.current = null;
-      if (captured.current?.hasPointerCapture(e.pointerId))
-        captured.current.releasePointerCapture(e.pointerId);
-    }
+    if (drag.current?.id !== e.pointerId) return;
+    if (captured.current?.hasPointerCapture(e.pointerId))
+      captured.current.releasePointerCapture(e.pointerId);
+    drag.current = null;
   }
   return {
     onPointerDown(e: ThreeEvent<PointerEvent>) {
-      if (cameraControl || !session.canShoot) return;
-      pointers.current.add(e.pointerId);
-      if (pointers.current.size > 1) {
-        dragging.current = null;
+      if (session.placing !== null) {
+        session.previewPlacement(e.point.x, e.point.z);
+        (e.target as Element).setPointerCapture(e.pointerId);
         return;
       }
+      if (top || !session.canShoot || drag.current) return;
       e.stopPropagation();
-      dragging.current = e.pointerId;
+      drag.current = { id: e.pointerId, x: e.clientX, angle: session.angle };
       captured.current = e.target as Element;
-      (e.target as Element).setPointerCapture(e.pointerId);
+      captured.current.setPointerCapture(e.pointerId);
       point(e);
     },
     onPointerMove(e: ThreeEvent<PointerEvent>) {
-      if (dragging.current === e.pointerId) point(e);
+      if (session.placing !== null)
+        session.previewPlacement(e.point.x, e.point.z);
+      if (drag.current?.id === e.pointerId) point(e);
     },
-    onPointerUp: release,
+    onPointerUp(e: ThreeEvent<PointerEvent>) {
+      if (
+        session.placing !== null &&
+        (e.target as Element).hasPointerCapture(e.pointerId)
+      ) {
+        (e.target as Element).releasePointerCapture(e.pointerId);
+        session.placeBall(session.placing, e.point.x, e.point.z);
+      }
+      release(e);
+    },
     onPointerCancel: release,
   };
 }
@@ -66,5 +74,8 @@ export function keyboardInput(session: BilliardSession, e: KeyboardEvent) {
     e.preventDefault();
     session.queueShot();
   }
-  if (e.key.toLowerCase() === "p") session.setPaused(!session.paused);
+  if (e.key.toLowerCase() === "p" || e.key === "Escape") {
+    e.preventDefault();
+    session.setPaused(!session.paused);
+  }
 }

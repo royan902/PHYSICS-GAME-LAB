@@ -2,11 +2,11 @@
 
 ## Implementasi Fase 3
 
-`src/games/billiard/physics.ts` adalah solver disc TypeScript pada bidang XZ, bukan Rapier. Keputusan ini menggantikan baseline Rapier untuk Billiard saja: continuous time of impact bola, rail, jaw dan pocket cocok untuk translasi 2.5D tanpa spin, tidak membutuhkan world 3D/WASM. Kontak simultan berurutan deterministik, bukan model rigid body umum. Lihat [PHYSICS_SPEC.md](PHYSICS_SPEC.md) dan [PHASE_3_REPORT.md](PHASE_3_REPORT.md).
+`src/games/billiard/physics.ts` adalah kernel sphere kontinu TypeScript dengan posisi/kecepatan XYZ, angular velocity dan quaternion. Revisi Classic/Simulation memperluas CCD yang ada, dengan gravitasi serta kontak kain pada empat substep tiap fixed tick 1/120 s. Satu solver dan satu pemilik stepping, tanpa dependency baru. Kontak simultan tetap berurutan; ini model edukatif, bukan rigid-body engine umum.
 
-Modul aktual: `physics.ts` kernel SI; `session.ts` fixed-step/rules/telemetry; `levels.ts` lima layout; `experiments.ts` preset eksperimen; `input.ts` command pointer/keyboard; `scene.tsx` R3F/kamera; `game.tsx` HUD/kontrol; `game-loader.tsx` dynamic import client-only. Hanya callback `useFrame` meja memanggil accumulator sesi; ball meshes membaca world melalui refs. HUD disampling 10 Hz, tidak menyimpan pose di React state. Render memakai pose tick terakhir (120 Hz), belum interpolasi antartick. Ini cukup untuk MVP dan tidak memengaruhi solver.
+Modul aktual: `physics.ts` kernel SI; `rules.ts` pure aturan 8-ball; `session.ts` accumulator, command, rack, rules dan placement; `input.ts` pointer/keyboard; `scene.tsx` R3F, kamera dan tekstur orisinal procedural; `game.tsx` HUD, mode selection, menu dan telemetry; `game-loader.tsx` dynamic client import. Preset level/eksperimen lama dihapus karena digantikan satu rack 16 bola. Hanya `useFrame` meja memanggil accumulator; renderer membaca pose/quaternion kernel, termasuk saat pause. HUD disampling 10 Hz. Canvas memenuhi viewport hanya pada route Billiard; katalog dan game lain tetap memakai shell existing.
 
-Canvas dipertahankan saat ganti mode/reset; Table dan preset diganti. OrbitControls, context-loss handler, listener blur/visibility, timer UI, texture label dan resource R3F dibersihkan pada unmount. WebGL context loss nyata menghentikan sesi dan menyediakan muat ulang. Route katalog tidak mengimpor Three secara eager. Registry menyatakan empat game lain Coming Soon. Tidak ada backend/deploy.
+Reset mengganti sesi/world; Canvas dapat dipakai ulang pada config sama, lalu dilepas saat kembali ke pemilihan mode atau keluar route. Context-loss handler, listener blur/visibility, timer UI, audio context, tekstur procedural dan resource R3F dibersihkan pada unmount. WebGL context loss nyata menghentikan sesi dan menyediakan muat ulang. Route katalog tidak mengimpor Three secara eager. Registry menyatakan empat game lain Coming Soon. Tidak ada backend/deploy.
 
 ## Status implementasi Fase 2
 

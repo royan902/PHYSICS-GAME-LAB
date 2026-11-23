@@ -1,6 +1,12 @@
 # Strategi pengujian
 
-## Gate aktual Fase 3
+## Gate revisi Fase 3 — Classic & Simulation
+
+`npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run test:e2e`. Suite aktual 31 unit test mencakup oracle momentum/energi/restitusi, rolling drag, CCD sweep 360 arah pada maksimum baru 8 m/s, enam pocket, r×J/I, jump apex ≤2 mm, momentum airborne/gravitasi, dissipation, backspin/sidespin, off-table, rack, placement, foul/8-ball dan cadence. Suite E2E 20 skenario Edge: empat viewport, Classic dan Simulation lewat UI, fallback, katalog dan keyboard. Enam alur gameplay terakhir diuji ulang setelah perbaikan airborne/landscape dan tambahan pointer power/spin nyata. Tidak ada injeksi world atau global test API.
+
+Port default 3103; bila sudah terpakai, PowerShell `$env:PLAYWRIGHT_TEST_PORT='3104'; npm run test:e2e`. Screenshot QA di test-results (ignored). Benchmark opsional `tools/benchmark-billiard.mjs` mengikuti port environment yang sama dan menyimpan `docs/previews/phase-3-revision-performance.json`; tidak dijalankan dalam revisi ini. Hasil benchmark lama adalah historis dan bukan bukti performa 16 bola/shadow baru. QA HP fisik dan browser selain Edge tetap tertunda.
+
+## Gate historis Fase 3 — Pocket Challenge
 
 Jalankan `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run test:e2e`. Solver produksi asli TypeScript diuji langsung oleh Vitest (Billiard tidak memakai WASM). Suite memvalidasi oracle momentum/energi, massa berbeda, tumbukan miring, restitution, drag, sweep kontinu 360 arah, keenam pocket, scratch/respawn, counter/pause/loss, HUD, parity mode, cadence 30/60/120 FPS dan solvabilitas lima level dengan resolusi bidikan 0.1°. Toleransi ditetapkan di PHYSICS_SPEC sebelum implementasi.
 

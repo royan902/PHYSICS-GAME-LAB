@@ -1,5 +1,22 @@
 # Laporan Fase 3 — Billiard Physics 3D Playable MVP
 
+## Revisi historis Classic & Simulation sebelum Enhancement V2 — 21 November 2026
+
+Branch `codex/billiard-classic-revision`, perubahan lokal belum di-commit/push/deploy. Referensi: rekaman 225344 sebagai target, 225659 sebagai baseline. Meja/camera/HUD viewport penuh; Classic lokal 2 pemain dengan 16 bola, solid/stripe, first contact, break, scratch, ball-in-hand dan hasil 8-ball; Simulation sandbox dengan placement semua bola, parameter dan telemetry SI. Power vertikal, spin dua sumbu, elevasi/jump fisik, menu pause lengkap dan konfirmasi reset tersedia. Katalog tetap utuh; teks About/detail hanya diselaraskan dengan mode baru. Tidak menambah dependency.
+
+Verifikasi: lint, typecheck, 31 unit test kernel/rules/session, production build; suite Edge 20/20 pada desktop 1440×1000, tablet 768×1024, touch portrait 375×812, landscape 844×390. Setelah perbaikan batas airborne dan kamera landscape, enam alur Classic/Simulation diuji ulang 6/6, termasuk pointer power dan spin nyata. Screenshot desktop/mobile/landscape diperiksa; tidak ada pageerror dalam alur kedua mode. Port QA 3104 digunakan karena 3103 sudah dipakai proses existing. `node --check tools/benchmark-billiard.mjs` lulus; benchmark panjang tidak dijalankan. Script benchmark diselaraskan ke mode/menu baru dan output revision terpisah agar bukti lama tidak tertimpa.
+
+Perbaikan dari QA: power portrait tertutup kontrol bawah; tes Canvas menunggu ukuran/resource siap; locator fallback dibatasi karena Next memiliki route-announcer alert; preset break diperkuat menjadi 8 m/s dengan μ rolling 0.01 agar break default legal; bola jump di luar bed menghasilkan off-table alih-alih tertinggal di luar meja. Semua fixture memakai toleransi tetap, tanpa melonggarkan aturan agar tes lulus.
+
+Batas: house rules tanpa called pocket, bola 8 saat break di-respot dan kelompok tetap terbuka. Jump adalah pendekatan bed rebound, kontak simultan berurutan, tanpa throw/masse/swerve, deformasi, maupun simulasi jatuh geometris ke pocket. Sidespin memengaruhi bantalan dan topspin/backspin memengaruhi slip kain; bukan kosmetik. Belum dikalibrasi terhadap meja nyata. HP fisik, Safari/Firefox, audio output perangkat, dan benchmark FPS baru belum diverifikasi; angka performa pada laporan historis di bawah tidak berlaku sebagai pengukuran revisi.
+
+Menjalankan: `npm run dev -- --port 3104`, lalu buka `/games/billiard`; pilih Classic atau Simulation. Production: `npm run build`, kemudian `npm run start -- --port 3104`. E2E PowerShell: `$env:PLAYWRIGHT_TEST_PORT='3104'; npm run test:e2e`. Perubahan pengguna pada AGENTS.md dan kedua arsip ZIP tetap dipertahankan.
+
+## Laporan historis sebelum revisi (Pocket Challenge)
+
+Bagian di bawah merekam implementasi sebelumnya, termasuk hasil benchmark dan checkpoint lama; tidak menggambarkan gameplay revisi.
+
+
 Tanggal: **20 November 2026, Asia/Jakarta**. Baseline Fase 2 `8ba2b75`. Branch kerja `codex/phase-3-billiard`. Hasil adalah MVP lokal, tanpa push atau deployment.
 
 ## 1. Fitur selesai

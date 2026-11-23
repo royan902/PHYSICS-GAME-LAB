@@ -48,12 +48,12 @@ test("home, catalog filters, all details, about and invalid slug", async ({
     await expect(page).toHaveURL(`/games/${slug}`);
     if (slug === "billiard") {
       await expect(
-        page.getByRole("button", { name: "Game Mode", exact: true }),
+        page.getByRole("button", { name: /Classic Mode/ }),
       ).toBeVisible();
       await expect(
-        page.getByRole("button", { name: "Simulation Mode", exact: true }),
+        page.getByRole("button", { name: /Simulation Mode/ }),
       ).toBeVisible();
-      await expect(page.locator("canvas")).toBeVisible();
+      await expect(page.locator("canvas")).toHaveCount(0);
     } else {
       await expect(
         page.getByRole("heading", { name: "Game Mode", exact: true }),
@@ -76,10 +76,15 @@ test("home, catalog filters, all details, about and invalid slug", async ({
         fullPage: true,
       });
     await page.reload();
-    await expect(
-      page.getByRole("heading", { name: "Tentang game" }),
-    ).toBeVisible();
-    await page.getByRole("link", { name: "Kembali ke katalog" }).click();
+    if (slug !== "billiard")
+      await expect(
+        page.getByRole("heading", { name: "Tentang game" }),
+      ).toBeVisible();
+    const detail =
+      slug === "billiard"
+        ? page.getByRole("region", { name: "Billiard 3D", exact: true })
+        : page.getByRole("main");
+    await detail.getByRole("link", { name: "Kembali ke katalog" }).click();
   }
   await page
     .getByRole("navigation")

@@ -1,5 +1,7 @@
 # Fase 3 — acceptance dan keputusan
 
+> Catatan historis implementasi Pocket Challenge sebelum revisi 21 November 2026. Scope aktif sekarang Classic/Simulation; lihat BLUEPRINT, ARCHITECTURE dan PHYSICS_SPEC.
+
 Audit 20 November 2026: baseline `8ba2b75`, website Next.js 16.4.6 / React 19.3.1. ZIP laporan Fase 2 untracked adalah data pengguna dan tidak disentuh. Identitas Git lokal valid. Lima skill proyek dan Game Studio (R3F, playtest) dibaca. Tidak membuat ulang aplikasi.
 
 Urutan gate: (1) kernel + oracle headless; (2) rendering dan input; (3) aturan lima level; (4) eksperimen dengan kernel sama; (5) produksi, E2E, screenshot, pengukuran. Status Playable hanya setelah gate gameplay lolos.

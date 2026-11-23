@@ -64,6 +64,7 @@ describe("Billiard SI analytic oracles (predefined tolerances)", () => {
   it("friction stopping distance and time match v²/2μg and v/μg", () => {
     const a = ball(0, -0.8, 0.2);
     a.vx = 0.5;
+    a.wz = -0.5 / RADIUS;
     const w = createWorld([a], { ...DEFAULT_CONFIG, friction: 0.04 });
     let ticks = 0;
     while (speed(w.balls[0]) > 0 && ticks < 1000) {
@@ -111,7 +112,7 @@ describe("Billiard SI analytic oracles (predefined tolerances)", () => {
     }
   });
   it("all six pockets capture once and remove ball from solver", () => {
-    for (const p of POCKETS) {
+    for (const [pocket, p] of POCKETS.entries()) {
       const a = ball(0, p.x * 0.8, p.z * 0.8);
       const d = Math.hypot(p.x - a.x, p.z - a.z);
       a.vx = ((p.x - a.x) / d) * 5;
@@ -121,6 +122,10 @@ describe("Billiard SI analytic oracles (predefined tolerances)", () => {
       for (let i = 0; i < 120; i++) {
         stepWorld(w);
         events += w.pockets.length;
+        if (w.pockets.length)
+          expect(w.events).toContainEqual(
+            expect.objectContaining({ kind: "pocket", id: 0, pocket }),
+          );
       }
       expect(events).toBe(1);
       expect(w.balls[0].active).toBe(false);
@@ -129,9 +134,9 @@ describe("Billiard SI analytic oracles (predefined tolerances)", () => {
   it("HUD impulse equals actual shot and no invalid inputs", () => {
     const a = ball(0, 0, 0);
     const result = applyShot(a, 0, 40)!;
-    expect(result.velocity).toBe(2);
-    expect(result.impulse).toBeCloseTo(0.34, 12);
-    expect(result.energy).toBeCloseTo(0.34, 12);
+    expect(result.velocity).toBe(3.2);
+    expect(result.impulse).toBeCloseTo(0.544, 12);
+    expect(result.energy).toBeCloseTo(0.8704, 12);
     expect(applyShot(a, 0, 40)).toBeNull();
     expect(applyShot(ball(0, 0, 0), NaN, 40)).toBeNull();
     expect(() => createWorld([], { ...ideal, mass: NaN })).toThrow();

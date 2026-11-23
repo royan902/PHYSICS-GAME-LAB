@@ -24,7 +24,8 @@ export const games: readonly Game[] = [
       "Energi kinetik",
       "Hambatan gerak",
     ],
-    gameMode: "Masukkan bola target dengan jumlah pukulan sesedikit mungkin.",
+    gameMode:
+      "Classic 8-ball lokal: solid dan stripe, bergantian dua pemain pada satu perangkat.",
     simulationMode:
       "Eksperimen dengan massa, restitusi, dan hambatan; amati kecepatan serta energi bola.",
   },

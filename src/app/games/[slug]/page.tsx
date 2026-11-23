@@ -49,8 +49,8 @@ export default async function GameDetail({
           <section className="billiard-about">
             <h2>Tentang game</h2>
             <p>
-              {game.description} Lima level Pocket Challenge dan lima eksperimen
-              memakai model fisika yang sama.
+              {game.description} Classic 8-ball lokal dua pemain dan Simulation sandbox
+              memakai meja, kontrol, serta model fisika yang sama.
             </p>
           </section>
         </>

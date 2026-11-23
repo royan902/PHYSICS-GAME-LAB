@@ -1,23 +1,21 @@
 // Run against npm run start -- --port 3103. No browser security overrides.
 import { chromium } from "@playwright/test";
-import { readFile, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import os from "node:os";
-const baseURL = "http://127.0.0.1:3103";
+const baseURL = `http://127.0.0.1:${process.env.PLAYWRIGHT_TEST_PORT ?? "3103"}`;
 const browser = await chromium.launch({
   channel: "msedge",
   chromiumSandbox: true,
 });
 const lifecycleOnly = process.argv.includes("--lifecycle-only");
-const report = lifecycleOnly
-  ? JSON.parse(await readFile("docs/previews/phase-3-performance.json", "utf8"))
-  : {
-      date: new Date().toISOString(),
-      os: os.release(),
-      cpu: os.cpus()[0].model,
-      browser: browser.version(),
-      samples: [],
-      lifecycle: [],
-    };
+const report = {
+  date: new Date().toISOString(),
+  os: os.release(),
+  cpu: os.cpus()[0].model,
+  browser: browser.version(),
+  samples: [],
+  lifecycle: [],
+};
 report.lifecycle = [];
 for (const mobile of lifecycleOnly ? [] : [false, true]) {
   const context = await browser.newContext({
@@ -42,6 +40,7 @@ for (const mobile of lifecycleOnly ? [] : [false, true]) {
   });
   const start = performance.now();
   await page.goto(`${baseURL}/games/billiard`);
+  await page.getByRole("button", { name: /Simulation Mode/ }).click();
   await page.getByRole("button", { name: /^Shoot/ }).waitFor();
   await page.waitForFunction(() => {
     const c = document.querySelector("canvas");
@@ -60,7 +59,6 @@ for (const mobile of lifecycleOnly ? [] : [false, true]) {
     uploadThroughput: -1,
     latency: 0,
   });
-  await page.getByLabel("Level", { exact: true }).selectOption("4");
   await page.getByRole("slider", { name: "Power", exact: true }).focus();
   await page.keyboard.press("End");
   await page.locator("canvas").scrollIntoViewIfNeeded();
@@ -89,11 +87,6 @@ for (const mobile of lifecycleOnly ? [] : [false, true]) {
         shoot.click();
         shots++;
       }
-      const state = document.querySelector(".billiard-viewport")?.dataset.state;
-      if (state === "lost" || state === "won")
-        Array.from(document.querySelectorAll("button"))
-          .find((b) => b.textContent === "Restart")
-          ?.click();
     }, 500);
     await new Promise((resolve) => {
       function frame(now) {
@@ -136,7 +129,7 @@ for (const mobile of lifecycleOnly ? [] : [false, true]) {
   report.samples.push(entry);
   console.log(JSON.stringify(entry));
   await writeFile(
-    "docs/previews/phase-3-performance.json",
+    "docs/previews/phase-3-revision-performance.json",
     JSON.stringify(report, null, 2),
   );
   await context.close();
@@ -151,13 +144,16 @@ for (let i = 0; i < 10; i++) {
     await page
       .getByRole("link", { name: "Lihat detail Billiard Physics" })
       .click();
+  await page.getByRole("button", { name: /Classic Mode/ }).click();
   await page.waitForFunction(
     () => document.querySelector("canvas")?.dataset.geometries,
   );
   const resources = await page
     .locator("canvas")
     .evaluate((c) => ({ ...c.dataset }));
-  await page.getByRole("link", { name: "Kembali ke katalog" }).click();
+  await page.getByRole("button", { name: "Pause / Settings" }).click();
+  await page.getByRole("button", { name: "Close Game", exact: true }).click();
+  await page.getByRole("button", { name: "Ya, lanjutkan" }).click();
   await page.waitForURL(`${baseURL}/games`);
   await page.waitForFunction(
     () => document.querySelectorAll("canvas").length === 0,
@@ -179,7 +175,7 @@ report.homeResources = await page.evaluate(() =>
 await context.close();
 await browser.close();
 await writeFile(
-  "docs/previews/phase-3-performance.json",
+  "docs/previews/phase-3-revision-performance.json",
   JSON.stringify(report, null, 2),
 );
-console.log("Saved docs/previews/phase-3-performance.json");
+console.log("Saved docs/previews/phase-3-revision-performance.json");

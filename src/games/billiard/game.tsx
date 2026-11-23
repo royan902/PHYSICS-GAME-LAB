@@ -4,20 +4,26 @@ import {
   useCallback,
   useEffect,
   useState,
+  useRef,
   type ReactNode,
+  type CSSProperties,
 } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { PoolAudio } from "./audio";
 import BilliardScene from "./scene";
 import { BilliardSession, type Mode } from "./session";
 import {
   DEFAULT_CONFIG,
   DT,
+  RADIUS,
+  angularSpeed,
   shotMetrics,
   speed,
   totals,
   type Config,
 } from "./physics";
-import { LEVELS } from "./levels";
-import { EXPERIMENTS, type Experiment } from "./experiments";
+
 import { keyboardInput } from "./input";
 class SceneBoundary extends Component<
   { children: ReactNode; onError: () => void },
@@ -75,33 +81,78 @@ function Range({
     </label>
   );
 }
+function Menu({ children }: { children: ReactNode }) {
+  const ref = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const d = ref.current!;
+    d.showModal();
+    return () => d.close();
+  }, []);
+  return (
+    <dialog
+      ref={ref}
+      className="pool-dialog"
+      onCancel={(e) => e.preventDefault()}
+    >
+      {children}
+    </dialog>
+  );
+}
 export default function BilliardGame() {
+  const router = useRouter();
   const [session, setSession] = useState(() => new BilliardSession());
+  const [selected, setSelected] = useState(false);
   const [, setRevision] = useState(0);
-  const [top, setTop] = useState(false),
-    [cameraControl, setCameraControl] = useState(false),
-    [zoom, setZoom] = useState(1);
+  const [top, setTop] = useState(false);
+  const [panel, setPanel] = useState(false);
+  const [setupBall, setSetupBall] = useState(0);
+  const [prefs, setPrefs] = useState(() => {
+    try {
+      const p = JSON.parse(localStorage.getItem("pool-audio") ?? "{}");
+      return {
+        sound: p.sound !== false,
+        music: Number.isFinite(p.music)
+          ? Math.min(1, Math.max(0, p.music))
+          : 0.22,
+        volume: Number.isFinite(p.volume)
+          ? Math.min(1, Math.max(0, p.volume))
+          : 0.45,
+      };
+    } catch {
+      return { sound: true, music: 0.22, volume: 0.45 };
+    }
+  });
+  const sound = prefs.sound;
+  const [assist, setAssist] = useState(true),
+    [low, setLow] = useState(false),
+    [zoom, setZoom] = useState(1),
+    [pitch, setPitch] = useState(1);
+  const [mixer] = useState(() => new PoolAudio());
   const [draft, setDraft] = useState<Config>({ ...DEFAULT_CONFIG });
-  const [experiment, setExperiment] = useState<Experiment>("Momentum");
   const [failed, setFailed] = useState(false);
+  const [confirm, setConfirm] = useState<
+    "restart" | "choose" | "parameters" | "close" | null
+  >(null);
+  const [position, setPosition] = useState({ x: -0.72, z: 0 });
+  const update = () => setRevision((n) => n + 1);
   const fail = useCallback(() => {
     session.setPaused(true);
     setFailed(true);
   }, [session]);
   const [supported] = useState(() => {
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("webgl2");
-    const available = Boolean(context);
+    const canvas = document.createElement("canvas"),
+      context = canvas.getContext("webgl2");
+    const ok = !!context;
     context?.getExtension("WEBGL_lose_context")?.loseContext();
-    return available;
+    return ok;
   });
-  const update = () => setRevision((n) => n + 1);
-
   useEffect(() => {
     const timer = window.setInterval(() => setRevision((n) => n + 1), 100);
     const pause = () => {
-      session.setPaused(true);
-      setRevision((n) => n + 1);
+      if (selected) {
+        session.setPaused(true);
+        setRevision((n) => n + 1);
+      }
     };
     const visibility = () => {
       if (document.hidden) pause();
@@ -109,482 +160,800 @@ export default function BilliardGame() {
     window.addEventListener("blur", pause);
     document.addEventListener("visibilitychange", visibility);
     return () => {
-      window.clearInterval(timer);
+      clearInterval(timer);
       window.removeEventListener("blur", pause);
       document.removeEventListener("visibilitychange", visibility);
       session.setPaused(true);
     };
-  }, [session]);
+  }, [session, selected]);
+  useEffect(() => {
+    mixer.setPreferences(prefs.volume, prefs.music, prefs.sound);
+    try {
+      localStorage.setItem("pool-audio", JSON.stringify(prefs));
+    } catch {}
+  }, [mixer, prefs]);
+  useEffect(() => () => mixer.dispose(), [mixer]);
+  useEffect(
+    () => session.bindSound((kind, strength) => mixer.play(kind, strength)),
+    [session, mixer],
+  );
   function reset(
     mode: Mode = session.mode,
-    level = session.level,
-    config = session.world.config,
-    exp: Experiment = session.experiment,
+    config: Config = session.world.config,
   ) {
-    setSession(new BilliardSession(mode, level, config, exp));
+    session.setPaused(true);
+    setSession(new BilliardSession(mode, config));
+    setTop(false);
+    setPanel(false);
   }
-  function changeMode(mode: Mode) {
-    if (mode !== session.mode) {
-      setDraft({ ...DEFAULT_CONFIG });
-      setExperiment("Momentum");
-      reset(mode, 0, DEFAULT_CONFIG, "Momentum");
+  function shoot() {
+    mixer.start();
+    session.queueShot();
+    update();
+  }
+  function request(action: NonNullable<typeof confirm>) {
+    session.setPaused(true);
+    setConfirm(action);
+    update();
+  }
+  function proceed() {
+    if (confirm === "close") {
+      router.push("/games");
+      return;
+    }
+    if (confirm === "choose") {
+      reset();
+      setSelected(false);
+    } else
+      reset(
+        session.mode,
+        confirm === "parameters" ? draft : session.world.config,
+      );
+    setConfirm(null);
+  }
+  const simulation = session.mode === "simulation",
+    stats = totals(session.world);
+  const predicted = shotMetrics(
+    session.power,
+    session.world.config.mass,
+    session.spin,
+  );
+  const cue = session.world.balls[0],
+    actual = session.lastShot;
+  function place() {
+    if (session.placing !== null) {
+      session.placeBall(session.placing, position.x, position.z);
+      update();
     }
   }
-  const level = LEVELS[session.level],
-    simulation = session.mode === "simulation";
-  const power = simulation ? session.initialSpeed / 0.05 : session.power;
-  const predicted = shotMetrics(power, session.world.config.mass),
-    actual = session.lastShot;
-  const stats = totals(session.world),
-    remaining = session.world.balls.filter((b) => b.id > 0 && b.active).length;
-  const status = session.paused
-    ? "Dijeda"
-    : {
-        ready: "Siap membidik",
-        moving: "Bola bergerak",
-        won: "Level selesai",
-        lost: "Coba lagi",
-      }[session.status];
   return (
-    <section className="billiard-app" aria-label="Billiard playable MVP">
-      <div className="billiard-topline">
-        <div className="billiard-modes" role="group" aria-label="Pilih mode">
-          <button aria-pressed={!simulation} onClick={() => changeMode("game")}>
-            Game Mode
-          </button>
-          <button
-            aria-pressed={simulation}
-            onClick={() => changeMode("simulation")}
-          >
-            Simulation Mode
-          </button>
+    <section
+      onClickCapture={(e) => {
+        if ((e.target as Element).closest("button")) {
+          mixer.start();
+          mixer.play("click");
+        }
+      }}
+      className="billiard-app"
+      aria-label="Billiard 3D"
+    >
+      {!selected ? (
+        <div className="pool-select">
+          <Link href="/games" className="pool-back">
+            ← Kembali ke katalog
+          </Link>
+          <span className="pool-eyebrow">PHYSICS GAME LAB / 01</span>
+          <div className="pool-eight">8</div>
+          <h1>
+            Billiard <em>Club.</em>
+          </h1>
+          <p>Meja yang sama. Dua cara bermain.</p>
+          <div className="pool-mode-cards">
+            <button
+              onClick={() => {
+                reset("classic", DEFAULT_CONFIG);
+                setDraft({ ...DEFAULT_CONFIG });
+                setSelected(true);
+              }}
+            >
+              <span>01 / LOCAL MULTIPLAYER</span>
+              <strong>Classic Mode ↗</strong>
+              <small>8-ball · 2 pemain · satu perangkat</small>
+            </button>
+            <button
+              onClick={() => {
+                reset("simulation", DEFAULT_CONFIG);
+                setDraft({ ...DEFAULT_CONFIG });
+                setSelected(true);
+              }}
+            >
+              <span>02 / PHYSICS SANDBOX</span>
+              <strong>Simulation Mode ↗</strong>
+              <small>Single player · spin, jump & eksperimen</small>
+            </button>
+          </div>
+          <small>
+            Mouse, touch, dan keyboard · landscape disarankan pada HP
+          </small>
         </div>
-        <span className="billiard-live">● {status}</span>
-      </div>
-      <div className="billiard-objective">
-        <div>
-          <span className="small-label">
-            {simulation
-              ? "PHYSICS SANDBOX"
-              : `POCKET CHALLENGE · ${session.level + 1} / 5`}
-          </span>
-          <h2>{simulation ? session.experiment : level.name}</h2>
-        </div>
-        <div className="billiard-score">
-          {simulation ? (
-            <>
-              <strong>{(session.world.tick * DT).toFixed(2)} s</strong>
-              <span>Waktu simulasi</span>
-            </>
-          ) : (
-            <>
-              <strong data-testid="shot-count">
-                {session.strokes} + {session.penalties} / {level.limit}
-              </strong>
-              <span>Pukulan + penalti · {remaining} target tersisa</span>
-            </>
-          )}
-        </div>
-      </div>
-      <div className="billiard-layout">
-        <div className="billiard-main">
+      ) : (
+        <>
           <div
             className="billiard-viewport"
-            data-tick={session.world.tick}
-            data-state={session.status}
-            data-cue-x={session.world.balls[0].x.toFixed(6)}
-            data-cue-z={session.world.balls[0].z.toFixed(6)}
-            data-targets={remaining}
-            data-dropped-frames={session.droppedFrames}
-            data-event-limit-hits={session.world.eventLimitHits}
             tabIndex={0}
             role="region"
-            aria-label="Area permainan. Panah kiri kanan untuk bidikan, Spasi untuk Shoot, P untuk jeda."
+            aria-label="Meja biliar. Panah untuk bidikan, Spasi untuk Shoot, P untuk pause."
+            data-tick={session.world.tick}
+            data-state={session.status}
+            data-paused={session.paused}
+            data-player={session.player + 1}
+            data-shots={session.strokes}
+            data-targets={session.remaining(null)}
+            data-cue-x={cue.x}
+            data-cue-z={cue.z}
+            data-cue-y={cue.y}
+            data-event-limit-hits={session.world.eventLimitHits}
             onKeyDown={(e) => {
               keyboardInput(session, e);
               update();
             }}
           >
-            {supported === null ? (
-              <div className="game-loading" role="status">
-                Memeriksa WebGL…
-              </div>
-            ) : failed || !supported ? (
+            {failed || !supported ? (
               <div className="billiard-fallback" role="alert">
-                <h3>Meja 3D belum dapat ditampilkan</h3>
+                <h2>Meja 3D belum dapat ditampilkan</h2>
                 <p>
                   WebGL 2 tidak tersedia atau konteks grafis terputus. Aktifkan
-                  akselerasi grafis atau gunakan browser yang mendukung WebGL.
+                  akselerasi grafis.
                 </p>
                 <button onClick={() => window.location.reload()}>
                   Muat ulang game
                 </button>
+                <Link href="/games">Kembali ke katalog</Link>
               </div>
             ) : (
               <SceneBoundary onError={fail}>
                 <BilliardScene
+                  key={
+                    selected
+                      ? String(session.mode) +
+                        session.world.config.mass +
+                        session.world.config.friction +
+                        session.world.config.restitution +
+                        session.world.config.cushion
+                      : "menu"
+                  }
                   session={session}
                   top={top}
-                  cameraControl={cameraControl}
+                  assist={assist}
                   zoom={zoom}
+                  pitch={pitch}
+                  low={low}
                   onFailure={fail}
                 />
               </SceneBoundary>
             )}
-            {session.paused && !failed && supported && (
-              <div className="billiard-pause">
-                <strong>Permainan dijeda</strong>
+          </div>
+          <header className="pool-hud">
+            <div className="pool-players">
+              {simulation ? (
+                <div className="pool-player active">
+                  <strong>Simulation</strong>
+                  <small>
+                    Sandbox · {(session.world.tick * DT).toFixed(1)} s
+                  </small>
+                </div>
+              ) : (
+                [0, 1].map((p) => (
+                  <div
+                    key={p}
+                    className={`pool-player ${session.player === p ? "active" : ""}`}
+                  >
+                    <strong>
+                      Pemain {p + 1} {session.player === p ? "●" : ""}
+                    </strong>
+                    <small>
+                      {session.groups[p] === "solid"
+                        ? "Solid 1–7"
+                        : session.groups[p] === "stripe"
+                          ? "Stripe 9–15"
+                          : "Meja terbuka"}{" "}
+                      · {session.remaining(session.groups[p])} tersisa
+                    </small>
+                  </div>
+                ))
+              )}
+            </div>
+            <div
+              className="pool-status"
+              role="status"
+              data-testid="game-notice"
+            >
+              {session.notice}
+            </div>
+            <nav aria-label="Pengaturan game">
+              <button onClick={() => setTop(!top)} aria-pressed={top}>
+                {top ? "Free Camera" : "Aim Camera"}
+              </button>
+              <button
+                aria-label="Suara"
+                aria-pressed={sound}
+                onClick={() => setPrefs({ ...prefs, sound: !sound })}
+              >
+                {sound ? "♪ On" : "♪ Off"}
+              </button>
+              <button
+                onClick={() => {
+                  session.setPaused(true);
+                  update();
+                }}
+              >
+                Pause / Settings
+              </button>
+            </nav>
+          </header>
+          <aside className="pool-power" aria-label="Shot power">
+            <span>POWER</span>
+            <strong data-testid="power">{session.power.toFixed(0)}%</strong>
+            <input
+              className="pool-power-slider"
+              style={{ "--shot-power": `${session.power}%` } as CSSProperties}
+              aria-label="Power"
+              type="range"
+              min="0"
+              max="100"
+              value={session.power}
+              disabled={!session.canShoot}
+              onChange={(e) => {
+                session.setPower(Number(e.target.value));
+                update();
+              }}
+            />
+            <small>Predicted velocity</small>
+            <b data-testid="predicted-velocity">
+              {predicted.velocity.toFixed(2)} m/s
+            </b>
+            <small>Estimated impulse</small>
+            <b data-testid="predicted-impulse">
+              {predicted.impulse.toFixed(3)} N·s
+            </b>
+            <button
+              className="billiard-shoot"
+              onClick={shoot}
+              disabled={
+                !session.canShoot ||
+                !session.callReady ||
+                session.power <= 0 ||
+                failed ||
+                !supported
+              }
+            >
+              Shoot ↗
+            </button>
+          </aside>
+          {!simulation &&
+            session.canPlace &&
+            !session.choices.length &&
+            session.placing === null && (
+              <div className="pool-call">
+                {session.breaking ? (
+                  <button
+                    onClick={() => {
+                      session.beginPlacement(0);
+                      update();
+                    }}
+                  >
+                    Posisi break
+                  </button>
+                ) : (
+                  <>
+                    {session.canRepositionCue && (
+                      <button
+                        onClick={() => {
+                          session.beginPlacement(0);
+                          update();
+                        }}
+                      >
+                        Pindah bola putih
+                      </button>
+                    )}
+                    <label>
+                      Bola
+                      <select
+                        value={session.callBall}
+                        onChange={(e) => {
+                          session.setCall(+e.target.value, session.callPocket);
+                          update();
+                        }}
+                      >
+                        <option value={-1}>Pilih bola</option>
+                        <option value={0}>Safety</option>
+                        {session.targets.map((b) => (
+                          <option key={b.id} value={b.id}>
+                            #{b.id}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Pocket
+                      <select
+                        disabled={session.callBall === 0}
+                        value={session.callPocket}
+                        onChange={(e) => {
+                          session.setCall(session.callBall, +e.target.value);
+                          update();
+                        }}
+                      >
+                        <option value={-1}>Pilih pocket</option>
+                        {["A", "B", "C", "D", "E", "F"].map((n, i) => (
+                          <option key={n} value={i}>
+                            {n}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </>
+                )}
+              </div>
+            )}
+          {session.choices.length > 0 && !session.paused && (
+            <Menu>
+              <h2>Pilihan setelah break</h2>
+              <p>{session.notice}</p>
+              {session.choices.map((c) => (
                 <button
+                  key={c}
                   onClick={() => {
-                    session.setPaused(false);
+                    session.chooseBreak(c);
                     update();
                   }}
                 >
-                  Lanjutkan
+                  {c}
                 </button>
-              </div>
-            )}
-            <div className="billiard-camera">
-              <button onClick={() => setTop(!top)} aria-pressed={top}>
-                {top ? "Perspektif" : "Top-down"}
-              </button>
-              <button
-                onClick={() => setCameraControl(!cameraControl)}
-                aria-pressed={cameraControl}
-              >
-                {cameraControl ? "Kamera aktif" : "Bidikan aktif"}
-              </button>
-            </div>
-            <span className="billiard-table-label">
-              2.54 × 1.27 m ·{" "}
-              {cameraControl
-                ? "Drag untuk kamera · pinch / scroll untuk zoom"
-                : "Drag meja untuk membidik"}
-            </span>
-          </div>
-          <div
-            className="billiard-notice"
-            role="status"
-            data-testid="game-notice"
-          >
-            {session.notice}
-          </div>
-          <div className="billiard-physics" aria-label="Physics HUD">
-            <div>
-              <span>Shot Power</span>
-              <strong data-testid="power">{power.toFixed(0)}%</strong>
-            </div>
-            <div>
-              <span>Predicted Initial Velocity</span>
-              <strong data-testid="predicted-velocity">
-                {predicted.velocity.toFixed(2)} <small>m/s</small>
-              </strong>
-            </div>
-            <div>
-              <span>Estimated Impulse</span>
-              <strong data-testid="predicted-impulse">
-                {predicted.impulse.toFixed(3)} <small>N·s</small>
-              </strong>
-            </div>
-            <div>
-              <span>Predicted Kinetic Energy</span>
-              <strong data-testid="predicted-energy">
-                {predicted.energy.toFixed(3)} <small>J</small>
-              </strong>
-            </div>
-          </div>
-          {actual && (
-            <p className="billiard-actual" data-testid="actual-shot">
-              Pukulan aktual: v₀ {actual.velocity.toFixed(2)} m/s · J{" "}
-              {actual.impulse.toFixed(3)} N·s · E₀ {actual.energy.toFixed(3)} J
-            </p>
+              ))}
+            </Menu>
           )}
-        </div>
-        <aside className="billiard-controls" aria-label="Kontrol permainan">
-          {simulation ? (
-            <>
-              <label className="billiard-select">
-                Eksperimen
-                <select
-                  aria-label="Eksperimen"
-                  value={experiment}
+          <div className="pool-bottom">
+            <div className="pool-contact">
+              <span>CONTACT / SPIN</span>
+              <div
+                className="pool-spin"
+                role="slider"
+                tabIndex={0}
+                aria-label="Titik pukul"
+                aria-valuemin={-100}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(session.spin.top * 100)}
+                aria-valuetext={`Side ${session.spin.side.toFixed(2)}, top ${session.spin.top.toFixed(2)}`}
+                aria-disabled={!session.canShoot}
+                onPointerDown={(e) => {
+                  if (!session.canShoot) return;
+                  e.currentTarget.setPointerCapture(e.pointerId);
+                  const r = e.currentTarget.getBoundingClientRect();
+                  session.setSpin(
+                    (e.clientX - r.left - r.width / 2) / (r.width / 2),
+                    -(e.clientY - r.top - r.height / 2) / (r.height / 2),
+                  );
+                  update();
+                }}
+                onPointerMove={(e) => {
+                  if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+                  const r = e.currentTarget.getBoundingClientRect();
+                  session.setSpin(
+                    (e.clientX - r.left - r.width / 2) / (r.width / 2),
+                    -(e.clientY - r.top - r.height / 2) / (r.height / 2),
+                  );
+                  update();
+                }}
+                onPointerUp={(e) => {
+                  if (e.currentTarget.hasPointerCapture(e.pointerId))
+                    e.currentTarget.releasePointerCapture(e.pointerId);
+                }}
+                onPointerCancel={(e) => {
+                  if (e.currentTarget.hasPointerCapture(e.pointerId))
+                    e.currentTarget.releasePointerCapture(e.pointerId);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key.startsWith("Arrow")) {
+                    e.preventDefault();
+                    session.setSpin(
+                      session.spin.side +
+                        (e.key === "ArrowRight"
+                          ? 0.1
+                          : e.key === "ArrowLeft"
+                            ? -0.1
+                            : 0),
+                      session.spin.top +
+                        (e.key === "ArrowUp"
+                          ? 0.1
+                          : e.key === "ArrowDown"
+                            ? -0.1
+                            : 0),
+                    );
+                    update();
+                  }
+                }}
+              >
+                <i
+                  style={{
+                    left: `${50 + session.spin.side * 40}%`,
+                    top: `${50 - session.spin.top * 40}%`,
+                  }}
+                />
+              </div>
+              <button
+                disabled={!session.canShoot}
+                onClick={() => {
+                  session.setSpin(0, 0);
+                  update();
+                }}
+              >
+                Center hit
+              </button>
+            </div>
+            <div className="pool-aim-controls">
+              <Range
+                label="Elevasi"
+                value={session.spin.elevation}
+                min={0}
+                max={70}
+                unit="°"
+                disabled={!session.canShoot}
+                onChange={(v) => {
+                  session.setSpin(session.spin.side, session.spin.top, v);
+                  update();
+                }}
+              />
+              <small>
+                Prediksi tinggi: {(predicted.height * 100).toFixed(1)} cm
+              </small>
+              <Range
+                label="Sudut bidikan"
+                value={(session.angle * 180) / Math.PI}
+                min={-180}
+                max={180}
+                step={0.1}
+                unit="°"
+                disabled={!session.canShoot}
+                onChange={(v) => {
+                  session.setAngle((v * Math.PI) / 180);
+                  update();
+                }}
+              />
+            </div>
+            <div className="pool-hint">
+              <strong>
+                {simulation ? "PHYSICS SANDBOX" : "8-BALL / LOCAL DUO"}
+              </strong>
+              <small>
+                {top
+                  ? "Drag: orbit · dua jari: pan/zoom · kanan-drag: pan"
+                  : "Drag: bidik · ← →: presisi · Spasi: pukul"}
+              </small>
+              {assist && session.canShoot && (
+                <small>Perkiraan lintasan · hingga 0,75 s</small>
+              )}
+              {actual && (
+                <small data-testid="actual-shot">
+                  Aktual v₀ {actual.velocity.toFixed(2)} m/s · J{" "}
+                  {actual.impulse.toFixed(3)} N·s
+                </small>
+              )}
+              <button onClick={() => setPanel(!panel)} aria-expanded={panel}>
+                {simulation ? "Data & setup" : "Aturan meja"}
+              </button>
+            </div>
+          </div>
+          {session.placing !== null && (
+            <div className="pool-placement">
+              <strong>
+                {session.ballInHand ? "Ball-in-hand" : "Setup bola"} · Bola{" "}
+                {session.placing}
+              </strong>
+              <small>
+                {!simulation && (session.breaking || session.headOnly)
+                  ? "Tempatkan di belakang head string (X < −0,635 m)."
+                  : "Geser di meja lalu lepas, atau isi koordinat dalam meter."}
+              </small>
+              <label>
+                X (m)
+                <input
+                  aria-label="Posisi X"
+                  type="number"
+                  min={-1.24}
+                  max={1.24}
+                  step="0.01"
+                  value={position.x}
                   onChange={(e) => {
-                    const exp = e.target.value as Experiment;
-                    setExperiment(exp);
-                    reset("simulation", 0, draft, exp);
+                    const x = Number(e.target.value);
+                    setPosition({ ...position, x });
+                    session.previewPlacement(x, position.z);
+                  }}
+                />
+              </label>
+              <label>
+                Z (m)
+                <input
+                  aria-label="Posisi Z"
+                  type="number"
+                  min={-0.6}
+                  max={0.6}
+                  step="0.01"
+                  value={position.z}
+                  onChange={(e) => {
+                    const z = Number(e.target.value);
+                    setPosition({ ...position, z });
+                    session.previewPlacement(position.x, z);
+                  }}
+                />
+              </label>
+              <button onClick={place}>Tempatkan bola</button>
+              {!session.ballInHand && (
+                <button
+                  onClick={() => {
+                    session.cancelPlacement();
+                    update();
                   }}
                 >
-                  {EXPERIMENTS.map((name) => (
-                    <option key={name}>{name}</option>
-                  ))}
-                </select>
-              </label>
-              <p className="billiard-help">
-                Pergantian eksperimen mereset sesi. Ubah parameter lalu terapkan
-                untuk world baru.
-              </p>
-            </>
-          ) : (
-            <>
-              <label className="billiard-select">
-                Level
-                <select
-                  aria-label="Level"
-                  value={session.level}
-                  onChange={(e) =>
-                    reset("game", Number(e.target.value), DEFAULT_CONFIG)
-                  }
-                >
-                  {LEVELS.map((l, i) => (
-                    <option key={l.name} value={i}>
-                      {i + 1}. {l.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <p className="billiard-help">{level.hint}</p>
-            </>
+                  Selesai setup
+                </button>
+              )}
+            </div>
           )}
-          <Range
-            label="Sudut bidikan"
-            value={Math.round((session.angle * 1800) / Math.PI) / 10}
-            min={-180}
-            max={180}
-            step={0.1}
-            unit="°"
-            disabled={!session.canShoot}
-            onChange={(v) => {
-              session.setAngle((v * Math.PI) / 180);
-              update();
-            }}
-          />
-          {simulation ? (
-            <Range
-              label="Kecepatan awal"
-              value={session.initialSpeed}
-              min={0}
-              max={5}
-              step={0.05}
-              unit=" m/s"
-              disabled={!session.canShoot}
-              onChange={(v) => {
-                session.setInitialSpeed(v);
-                update();
-              }}
-            />
-          ) : (
-            <Range
-              label="Power"
-              value={session.power}
-              min={0}
-              max={100}
-              unit="%"
-              disabled={!session.canShoot}
-              onChange={(v) => {
-                session.setPower(v);
-                update();
-              }}
-            />
-          )}
-          <button
-            className="billiard-shoot"
-            disabled={!session.canShoot || power <= 0 || !supported || failed}
-            onClick={() => {
-              session.queueShot();
-              update();
-            }}
-          >
-            Shoot <span>↗</span>
-          </button>
-          <div className="billiard-actions">
-            <button
-              disabled={failed || !supported}
-              onClick={() => {
-                session.setPaused(!session.paused);
-                update();
-              }}
+          {panel && (
+            <aside
+              className="pool-panel"
+              aria-label={simulation ? "Data simulasi" : "Aturan meja"}
             >
-              {session.paused ? "Lanjutkan" : "Pause"}
-            </button>
-            <button onClick={() => reset()}>
-              {simulation ? "Reset experiment" : "Restart"}
-            </button>
-          </div>
-          {session.status === "won" && !simulation && session.level < 4 && (
-            <button
-              className="billiard-next"
-              onClick={() => reset("game", session.level + 1, DEFAULT_CONFIG)}
-            >
-              Next level →
-            </button>
-          )}
-          {session.status === "won" && session.level === 4 && (
-            <p role="status">
-              Seluruh tantangan selesai. Selamat bereksperimen!
-            </p>
-          )}
-          <details className="billiard-details">
-            <summary>Kamera & panduan kontrol</summary>
-            <Range
-              label="Zoom kamera"
-              value={zoom}
-              min={0.8}
-              max={1.5}
-              step={0.05}
-              onChange={setZoom}
-            />
-            <p>
-              Mode Bidikan: drag meja atau gunakan slider sudut. Mode Kamera:
-              drag memutar perspektif. Scroll / pinch dua jari untuk zoom. Fokus
-              meja: ← → membidik, Spasi menembak, P menjeda.
-            </p>
-          </details>
-          {simulation && (
-            <details className="billiard-details" open>
-              <summary>Parameter eksperimen</summary>
-              <Range
-                label="Massa bola"
-                value={draft.mass}
-                min={0.1}
-                max={0.3}
-                step={0.01}
-                unit=" kg"
-                onChange={(v) => setDraft({ ...draft, mass: v })}
-              />
-              <Range
-                label="Koefisien gesek"
-                value={draft.friction}
-                min={0}
-                max={0.08}
-                step={0.005}
-                onChange={(v) => setDraft({ ...draft, friction: v })}
-              />
-              <Range
-                label="Restitusi bola"
-                value={draft.restitution}
-                min={0}
-                max={1}
-                step={0.05}
-                onChange={(v) =>
-                  setDraft({
-                    ...draft,
-                    restitution: v,
-                    cushion: Math.min(v, draft.cushion),
-                  })
-                }
-              />
-              <Range
-                label="Restitusi bantalan"
-                value={draft.cushion}
-                min={0}
-                max={draft.restitution}
-                step={0.05}
-                onChange={(v) => setDraft({ ...draft, cushion: v })}
-              />
-              <button onClick={() => reset("simulation", 0, draft, experiment)}>
-                Terapkan & reset
+              <button
+                className="pool-panel-close"
+                onClick={() => setPanel(false)}
+              >
+                Tutup ×
               </button>
-              <p>
-                Nilai aktif: m {session.world.config.mass} kg · μ{" "}
-                {session.world.config.friction} · e{" "}
-                {session.world.config.restitution} · e bantalan{" "}
-                {session.world.config.cushion}. Bantalan dibatasi ≤ restitusi
-                bola.
-              </p>
-            </details>
+              <h2>{simulation ? "Physics Lab" : "Aturan meja"}</h2>
+              {simulation && (
+                <>
+                  <label>
+                    Bola untuk setup
+                    <select
+                      aria-label="Bola untuk setup"
+                      disabled={!session.canPlace}
+                      value={setupBall}
+                      onChange={(e) => setSetupBall(Number(e.target.value))}
+                    >
+                      {session.world.balls.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          Bola {b.id}
+                          {!b.active ? " · pocket" : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <button
+                    disabled={!session.canPlace}
+                    onClick={() => {
+                      session.beginPlacement(setupBall);
+                      update();
+                      setPanel(false);
+                    }}
+                  >
+                    Atur posisi bola
+                  </button>
+                  <Range
+                    label="Massa bola"
+                    value={draft.mass}
+                    min={0.1}
+                    max={0.3}
+                    step={0.01}
+                    unit=" kg"
+                    onChange={(v) => setDraft({ ...draft, mass: v })}
+                  />
+                  <Range
+                    label="Koefisien gesek"
+                    value={draft.friction}
+                    min={0}
+                    max={0.08}
+                    step={0.005}
+                    onChange={(v) => setDraft({ ...draft, friction: v })}
+                  />
+                  <Range
+                    label="Restitusi bola"
+                    value={draft.restitution}
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    onChange={(v) =>
+                      setDraft({
+                        ...draft,
+                        restitution: v,
+                        cushion: Math.min(v, draft.cushion),
+                      })
+                    }
+                  />
+                  <Range
+                    label="Restitusi bantalan"
+                    value={draft.cushion}
+                    min={0}
+                    max={draft.restitution}
+                    step={0.05}
+                    onChange={(v) => setDraft({ ...draft, cushion: v })}
+                  />
+                  <button onClick={() => request("parameters")}>
+                    Terapkan & reset
+                  </button>
+                  <p>
+                    Aktif: m {session.world.config.mass} kg · μ{" "}
+                    {session.world.config.friction} · e{" "}
+                    {session.world.config.restitution} · e bantalan{" "}
+                    {session.world.config.cushion}
+                  </p>
+                  <p>
+                    Momentum (X,Y,Z): {stats.px.toFixed(3)},{" "}
+                    {stats.py.toFixed(3)}, {stats.pz.toFixed(3)} kg·m/s
+                  </p>
+                  <p>
+                    Energi kinetik total (translasi + rotasi):{" "}
+                    {stats.energy.toFixed(4)} J
+                  </p>
+                  <p>
+                    Cue: {speed(cue).toFixed(3)} m/s · ω{" "}
+                    {angularSpeed(cue).toFixed(2)} rad/s · h{" "}
+                    {Math.max(0, cue.y - RADIUS).toFixed(3)} m
+                  </p>
+                  <div className="pool-ball-data">
+                    {session.world.balls.map((b) => (
+                      <p key={b.id}>
+                        #{b.id}{" "}
+                        {b.active
+                          ? `v ${speed(b).toFixed(2)} m/s · ω ${angularSpeed(b).toFixed(1)} rad/s · (${b.x.toFixed(2)},${b.y.toFixed(2)},${b.z.toFixed(2)}) m`
+                          : "pocket"}
+                      </p>
+                    ))}
+                  </div>
+                </>
+              )}
+              <details open={!simulation}>
+                <summary>Aturan 8-ball</summary>
+                <p>
+                  Break dari belakang Head String. Masukkan bola atau kirim
+                  empat bola objek berbeda ke bantalan. Pemain yang berhak
+                  memilih tindakan setelah break ilegal atau bola 8 masuk.
+                </p>
+                <p>
+                  Sesudah break, panggil bola dan pocket bertanda A–F, atau
+                  pilih Safety. Call yang berhasil pada meja terbuka menentukan
+                  kelompok. Sentuh kelompok sendiri dahulu, lalu masukkan bola
+                  atau sentuh bantalan. Foul memberi lawan ball-in-hand. Setelah
+                  kelompok habis, masukkan bola 8 ke pocket yang dipanggil untuk
+                  menang.
+                </p>
+              </details>
+              <details>
+                <summary>Model & satuan</summary>
+                <p>
+                  Fixed 1/120 s, empat substep kontak. J=m·8P/100 N·s, bukan
+                  gaya Newton. I=⅖mr². Sliding menggunakan slip v + ω×r, rolling
+                  resistance μmg; sidespin berpindah pada bantalan. Jump memakai
+                  pantulan meja 0.35 setelah impuls vertikal menurun melampaui
+                  0.35 m/s. Tinggi prediksi vy²/2g adalah lintasan bebas sebelum
+                  benturan.
+                </p>
+                <p>
+                  Model edukatif: belum memodelkan deformasi, masse/swerve,
+                  throw antarbola, atau geometri jatuh pocket. Kontak simultan
+                  diselesaikan berurutan. Tidak mewakili kalibrasi meja
+                  turnamen.
+                </p>
+              </details>
+            </aside>
           )}
-        </aside>
-      </div>
-      {simulation && (
-        <section className="billiard-results">
-          <h3>Data simulasi</h3>
-          <div className="billiard-physics">
-            <div>
-              <span>Kecepatan bola putih</span>
-              <strong>{speed(session.world.balls[0]).toFixed(3)} m/s</strong>
-            </div>
-            <div>
-              <span>Momentum total (X, Z)</span>
-              <strong>
-                ({stats.px.toFixed(3)}, {stats.pz.toFixed(3)}) kg·m/s
-              </strong>
-            </div>
-            <div>
-              <span>Energi translasi total</span>
-              <strong>{stats.energy.toFixed(4)} J</strong>
-            </div>
-            <div>
-              <span>Energi awal pukulan</span>
-              <strong>{actual?.energy.toFixed(4) ?? "—"} J</strong>
-            </div>
-          </div>
-          <svg
-            className="billiard-chart"
-            viewBox="0 0 600 90"
-            role="img"
-            aria-label="Grafik energi total terhadap waktu simulasi, hingga 12 detik terakhir"
-          >
-            <path d="M0 5V80H600" fill="none" stroke="#64748b" />
-            <polyline
-              points={session.samples
-                .map(
-                  (s, i) =>
-                    `${(i * 600) / 119},${80 - (s.energy / Math.max(actual?.energy ?? 1, 0.001)) * 70}`,
-                )
-                .join(" ")}
-              fill="none"
-              stroke="#6ce4bf"
-              strokeWidth="2"
-            />
-            <text x="10" y="16" fill="#b8c4d9" fontSize="10">
-              E (J) · 0 – {actual?.energy.toFixed(3) ?? "0"}
-            </text>
-            <text x="460" y="76" fill="#b8c4d9" fontSize="10">
-              waktu (0.1 s / sampel)
-            </text>
-          </svg>
-          <div className="billiard-ball-data">
-            {session.world.balls.map((b) => (
-              <span key={b.id}>
-                Bola {b.id}:{" "}
-                {b.active
-                  ? `${speed(b).toFixed(3)} m/s · p ${(b.mass * speed(b)).toFixed(3)} kg·m/s · E ${(0.5 * b.mass * speed(b) ** 2).toFixed(4)} J`
-                  : "masuk pocket"}
-              </span>
-            ))}
-          </div>
-          <button
-            onClick={() => {
-              if (session.paused) {
-                session.singleStep();
-                update();
-              }
-            }}
-            disabled={!session.paused || session.status !== "moving"}
-          >
-            Single step (1/120 s)
-          </button>
-        </section>
+          {(session.paused || confirm) && !failed && (
+            <Menu>
+              <span className="pool-eyebrow">BILLIARD CLUB</span>
+              <h2>{confirm ? "Reset progres sesi?" : "Permainan dijeda"}</h2>
+              {confirm ? (
+                <>
+                  <p>Posisi bola dan progres permainan saat ini akan hilang.</p>
+                  <button className="billiard-shoot" onClick={proceed}>
+                    Ya, lanjutkan
+                  </button>
+                  <button onClick={() => setConfirm(null)}>Batal</button>
+                </>
+              ) : (
+                <>
+                  <button
+                    className="billiard-shoot"
+                    onClick={() => {
+                      session.setPaused(false);
+                      update();
+                    }}
+                  >
+                    Resume
+                  </button>
+                  <details>
+                    <summary>Settings</summary>
+                    <Range
+                      label="Volume musik"
+                      min={0}
+                      max={1}
+                      step={0.05}
+                      value={prefs.music}
+                      onChange={(music) => setPrefs({ ...prefs, music })}
+                    />
+                    <Range
+                      label="Volume efek"
+                      min={0}
+                      max={1}
+                      step={0.05}
+                      value={prefs.volume}
+                      onChange={(volume) => setPrefs({ ...prefs, volume })}
+                    />
+                    <Range
+                      label="Zoom Aim Camera"
+                      min={0.7}
+                      max={1.6}
+                      step={0.05}
+                      value={zoom}
+                      onChange={setZoom}
+                    />
+                    <Range
+                      label="Tinggi kamera"
+                      min={0.65}
+                      max={1.5}
+                      step={0.05}
+                      value={pitch}
+                      onChange={setPitch}
+                    />
+                    <button
+                      aria-pressed={assist}
+                      onClick={() => setAssist(!assist)}
+                    >
+                      Bantuan bidik · {assist ? "On" : "Off"}
+                    </button>
+                    <button aria-pressed={low} onClick={() => setLow(!low)}>
+                      Grafis · {low ? "Ringan" : "Detail"}
+                    </button>
+                  </details>
+                  <button onClick={() => request("restart")}>Restart</button>
+                  <button onClick={() => request("choose")}>Choose Mode</button>
+                  <button onClick={() => request("close")}>Close Game</button>
+                  {simulation && (
+                    <button
+                      disabled={session.status !== "moving"}
+                      onClick={() => {
+                        session.singleStep();
+                        update();
+                      }}
+                    >
+                      Single step (1/120 s)
+                    </button>
+                  )}
+                </>
+              )}
+            </Menu>
+          )}
+          {session.status === "won" && !session.paused && (
+            <Menu>
+              <span className="pool-eyebrow">MATCH COMPLETE</span>
+              <h2>Pemain {(session.winner ?? 0) + 1} menang</h2>
+              <p>{session.notice}</p>
+              <button className="billiard-shoot" onClick={() => reset()}>
+                Main lagi
+              </button>
+              <button
+                onClick={() => {
+                  reset();
+                  setSelected(false);
+                }}
+              >
+                Choose Mode
+              </button>
+              <Link href="/games">Kembali ke katalog</Link>
+            </Menu>
+          )}
+        </>
       )}
-      <details className="billiard-model">
-        <summary>Model fisika & satuan SI</summary>
-        <p>
-          Model edukatif 2.5D: bola bergerak di bidang XZ; Y tetap pada radius
-          0.028575 m. Massa default 0.17 kg, fixed tick 1/120 s. Power adalah
-          input kecepatan: v₀ = 5 × Power / 100 m/s; bukan gaya Newton. J = Δp =
-          m v₀ (N·s), p = m v (kg·m/s), E = ½mv² (J). Tidak menampilkan gaya
-          rata-rata tanpa durasi kontak.
-        </p>
-        <p>
-          Hambatan efektif a = μ × 9.81 m/s²; tanpa spin, jump, throw, atau
-          energi rotasi. Tumbukan impuls normal, restitusi 0–1; momentum total
-          berubah akibat bantalan, pocket dan gesekan. Capture pocket saat pusat
-          bola masuk radius 0.065 m. Scratch menambah satu penalti dan bola
-          putih kembali ke tempat aman setelah meja diam. Batas level menghitung
-          pukulan + penalti; target terakhir menyelesaikan level setelah meja
-          diam. Tab tersembunyi otomatis menjeda; resume melalui tombol.
-        </p>
-      </details>
     </section>
   );
 }
