@@ -9,6 +9,7 @@ docs/
 tests/
 tools/*
 !tools/build-newton-html.mjs
+!tools/build-motion-games.mjs
 test-results/
 playwright-report/
 coverage/
