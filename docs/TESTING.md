@@ -1,5 +1,11 @@
 # Strategi pengujian
 
+## Website Enhancement V2
+
+Pada 23 November 2026: 40 unit test dan 32 E2E Edge lulus (1440×1000, 768×1024, 375×812, 844×390). Suite mencakup search/filter/empty state, detail/player, keyboard/menu/reduced motion, native lazy loading, HTML5 sandbox dan fallback external embed, serta Classic/Simulation/WebGL unavailable existing. Tes lompatan memasang observasi DOM sebelum Shoot agar polling tidak melewatkan fase airborne pendek; model fisika tidak berubah. Adapter fixture hanya di intercept jaringan tes, bukan game publik. Tes iframe tidak menggantikan QA build/hosting game pihak ketiga nyata. HP fisik dan Safari tetap belum diuji.
+
+Screenshot berada di `test-results/` (ignored). Gunakan produksi lokal port 3103 seperti workflow di bawah. Skor Lighthouse dan trace lokal bukan data Core Web Vitals pengguna produksi.
+
 ## Gate revisi Fase 3 — Classic & Simulation
 
 `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run test:e2e`. Suite aktual 31 unit test mencakup oracle momentum/energi/restitusi, rolling drag, CCD sweep 360 arah pada maksimum baru 8 m/s, enam pocket, r×J/I, jump apex ≤2 mm, momentum airborne/gravitasi, dissipation, backspin/sidespin, off-table, rack, placement, foul/8-ball dan cadence. Suite E2E 20 skenario Edge: empat viewport, Classic dan Simulation lewat UI, fallback, katalog dan keyboard. Enam alur gameplay terakhir diuji ulang setelah perbaikan airborne/landscape dan tambahan pointer power/spin nyata. Tidak ada injeksi world atau global test API.

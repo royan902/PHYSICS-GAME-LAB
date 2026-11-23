@@ -13,7 +13,7 @@ async function range(page: Page, label: string, value: number) {
   }, value);
 }
 async function start(page: Page, mode = "Classic Mode") {
-  await page.goto("/games/billiard");
+  await page.goto("/games/billiard/play");
   await page.getByRole("button", { name: new RegExp(mode) }).click();
   await expect(page.locator("canvas")).toBeVisible();
   await expect(page.locator("canvas")).toHaveAttribute(
@@ -136,15 +136,19 @@ test("Simulation: real spin, elevation, jump, setup, telemetry and parameter res
   await expect(spin).not.toHaveAttribute("aria-valuenow", "0");
   await range(page, "Elevasi", 65);
   await range(page, "Power", 40);
-  await page.getByRole("button", { name: "Shoot ↗" }).click();
+  // Observe before the shot so a short jump cannot finish between polling samples.
+  await Promise.all([
+    page.waitForFunction(
+      () =>
+        Number(
+          document
+            .querySelector(".billiard-viewport")
+            ?.getAttribute("data-cue-y"),
+        ) > 0.03,
+    ),
+    page.getByRole("button", { name: "Shoot ↗" }).click(),
+  ]);
   await expect(page.getByTestId("actual-shot")).toContainText("J 0.544 N·s");
-  await expect
-    .poll(async () =>
-      Number(
-        await page.locator(".billiard-viewport").getAttribute("data-cue-y"),
-      ),
-    )
-    .toBeGreaterThan(0.03);
   await expect(page.getByRole("button", { name: "Shoot ↗" })).toBeEnabled({
     timeout: 20000,
   });
@@ -199,7 +203,7 @@ test("WebGL unavailable preserves a readable exit and disabled shot", async ({
     HTMLCanvasElement.prototype.getContext = (() =>
       null) as typeof HTMLCanvasElement.prototype.getContext;
   });
-  await page.goto("/games/billiard");
+  await page.goto("/games/billiard/play");
   await page.getByRole("button", { name: /Classic Mode/ }).click();
   await expect(page.locator(".billiard-fallback")).toContainText("WebGL 2");
   await expect(page.getByRole("button", { name: "Shoot ↗" })).toBeDisabled();

@@ -1,21 +1,28 @@
+import type { GameRuntime } from "@/games/runtime";
+
 export type Game = {
   slug: string;
   title: string;
   dimension: "2D" | "3D";
   topic: string;
-  status: "Playable" | "In Development" | "Coming Soon";
+  thumbnail: string;
   description: string;
   concepts: readonly string[];
   gameMode: string;
-  simulationMode: string;
-};
+  simulationMode?: string;
+} & (
+  | { status: "Playable"; runtime: GameRuntime }
+  | { status: "In Development" | "Coming Soon"; runtime?: never }
+);
 export const games: readonly Game[] = [
   {
     slug: "billiard",
+    thumbnail: "/images/billiard.svg",
     title: "Billiard Physics",
     dimension: "3D",
     topic: "Momentum & Collision",
     status: "Playable",
+    runtime: { kind: "native", id: "billiard" },
     description:
       "Bidik, atur kekuatan, dan pelajari bagaimana tumbukan memindahkan momentum di atas meja biliar.",
     concepts: [
@@ -31,6 +38,7 @@ export const games: readonly Game[] = [
   },
   {
     slug: "golf",
+    thumbnail: "/images/golf.svg",
     title: "Golf Physics",
     dimension: "3D",
     topic: "Force & Friction",
@@ -49,6 +57,7 @@ export const games: readonly Game[] = [
   },
   {
     slug: "rocket-landing",
+    thumbnail: "/images/rocket-landing.svg",
     title: "Rocket Landing",
     dimension: "2D",
     topic: "Thrust & Gravity",
@@ -68,6 +77,7 @@ export const games: readonly Game[] = [
   },
   {
     slug: "cannon",
+    thumbnail: "/images/cannon.svg",
     title: "Cannon Physics",
     dimension: "3D",
     topic: "Projectile Motion",
@@ -86,6 +96,7 @@ export const games: readonly Game[] = [
   },
   {
     slug: "ramp-race",
+    thumbnail: "/images/ramp-race.svg",
     title: "Ramp Race",
     dimension: "3D",
     topic: "Energy & Motion",

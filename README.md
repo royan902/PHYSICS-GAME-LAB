@@ -15,7 +15,9 @@ Buka [http://127.0.0.1:3000](http://127.0.0.1:3000). Untuk production: `npm run 
 
 Pemeriksaan: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run test:e2e`. E2E memakai Edge terpasang dengan sandbox aktif, production server port **3103** (agar tidak mengganggu dev server 3000), desktop/tablet/mobile/landscape. Tools MCP tetap terisolasi melalui `./tools/setup-environment.ps1`.
 
-Halaman: `/`, `/games`, `/games/[slug]`, `/about`. Buka `/games/billiard`, pilih Classic Mode atau Simulation Mode. Drag meja untuk bidikan, atur Power lalu Shoot. Sesudah break di Classic, pilih bola dan pocket atau Safety sebelum memukul. Aim Camera mengikuti bidikan. Free Camera mendukung orbit serta scroll/pinch untuk zoom. Fokus area meja untuk ← →, Spasi, P. Parameter eksperimen diterapkan melalui reset eksplisit.
+Halaman: `/`, `/games`, `/games/[slug]`, `/games/[slug]/play`, `/about`. Buka detail Billiard lalu **Play Now**, pilih Classic Mode atau Simulation Mode. Drag meja untuk bidikan, atur Power lalu Shoot. Sesudah break di Classic, pilih bola dan pocket atau Safety sebelum memukul. Aim Camera mengikuti bidikan. Free Camera mendukung orbit serta scroll/pinch untuk zoom. Fokus area meja untuk ← →, Spasi, P. Parameter eksperimen diterapkan melalui reset eksplisit.
+
+Website V2 menambahkan pencarian/filter katalog, navigasi mobile, animasi ringan, dan registry runtime native/HTML5/external. Lihat [panduan integrasi game](docs/GAME_INTEGRATION.md). Production tetap versi sebelumnya sampai preview disetujui.
 
 Baca [laporan Fase 3](docs/PHASE_3_REPORT.md), [model fisika](docs/PHYSICS_SPEC.md), [dokumentasi](docs/README.md), [roadmap](docs/ROADMAP.md), dan [AGENTS.md](AGENTS.md). Kernel bola khusus TypeScript menggunakan SI dan fixed timestep 1/120 s, dengan spin dan jump. QA emulasi mobile belum setara pengujian HP fisik.
 

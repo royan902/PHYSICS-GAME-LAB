@@ -4,6 +4,7 @@ Baseline perencanaan: **20 November 2026, Asia/Jakarta**. Seluruh pilihan versi,
 
 | Dokumen | Isi |
 | --- | --- |
+| [GAME_INTEGRATION.md](GAME_INTEGRATION.md) | Registry V2, native/HTML5/external, sandbox, dan cara menambahkan game |
 | [BLUEPRINT.md](BLUEPRINT.md) | Konsep, cakupan MVP, mode, pengalaman pengguna |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Batas modul, runtime, data, keputusan arsitektur |
 | [PHYSICS_SPEC.md](PHYSICS_SPEC.md) | Unit, persamaan, parameter awal, validasi lima game |

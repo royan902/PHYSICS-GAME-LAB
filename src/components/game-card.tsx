@@ -2,17 +2,17 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Game } from "@/data/games";
 import { Arrow } from "./icons";
-export function GameCard({ game }: { game: Game }) {
+export function GameCard({ game, index = 0 }: { game: Game; index?: number }) {
   return (
     <Link
       href={`/games/${game.slug}`}
       className="game-card"
-      aria-label={`Lihat detail ${game.title}`}
+      style={{ animationDelay: `${index * 45}ms` }}
     >
       <div className="card-art">
         <Image
-          src={`/images/${game.slug}.svg`}
-          alt={`Ilustrasi ${game.title}`}
+          src={game.thumbnail}
+          alt=""
           width={640}
           height={400}
           sizes="(max-width: 600px) 100vw, (max-width: 1000px) 50vw, 33vw"
@@ -27,7 +27,7 @@ export function GameCard({ game }: { game: Game }) {
         <p>{game.topic}</p>
         <div className="card-bottom">
           <span
-            className={`status ${game.status !== "Coming Soon" ? "development" : ""}`}
+            className={`status ${game.status === "Playable" ? "development" : ""}`}
           >
             <span aria-hidden="true" />
             {game.status}

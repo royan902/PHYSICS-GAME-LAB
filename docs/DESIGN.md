@@ -1,5 +1,11 @@
 # Desain dan interaksi
 
+## Website Enhancement V2 — arahan aktif
+
+Shell memakai navy `#0A0F1A`, surface `#111B2B`, cyan `#66D9EF`, border tipis, font sistem lokal, navbar sticky dan menu mobile. Home berisi hero SVG, featured Billiard dan tiga preview katalog; `/games` menyediakan pencarian teks/konsep serta filter dimensi/status. Detail dan player terpisah. Grid tiga/dua/satu kolom, target sentuh minimal 44 px. Entrance/stagger/reveal terbatas pada transform/opacity; tidak ada loop animasi tanpa batas dan reduced motion mematikannya. Ilustrasi SVG existing dipertahankan; metadata aktual mengambil prioritas atas label contoh dalam konsep visual. Desain Billiard tetap seperti sebelumnya.
+
+Bagian Fase 2 berikut adalah riwayat desain shell, bukan arahan aktif V2.
+
 ## Website Fase 2 — arahan final
 
 Referensi pengguna: struktur katalog gambar kedua, card gambar pertama; branding orisinal Physics Game Lab. Background #0F1014, surface #1B1D24, hero #142744, primary #2978CD. Sans-serif sistem lokal, tanpa font eksternal. Container desktop maksimum 1240 px, sidebar filter 188 px, gap 30 px, grid maksimal tiga kolom; dua kolom tablet dan satu kolom mobile. Navbar Home/Games/About, hero judul sesuai brief, tombol Explore Games membuka /games. Asset SVG orisinal lokal menjadi preview konsep, bukan gameplay.

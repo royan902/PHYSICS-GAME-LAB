@@ -20,6 +20,10 @@ Satu aplikasi Next.js App Router, TypeScript strict, Tailwind CSS, satu package 
 
 [R3F](https://r3f.docs.pmnd.rs/getting-started/introduction) menyediakan renderer React untuk Three.js. Versi stable dipilih mengikuti kompatibilitas React; jangan mengikuti dokumentasi alpha secara tidak sengaja. Integrasi framework dicek terhadap [panduan Next.js](https://nextjs.org/docs/app/getting-started/installation).
 
+## Website Enhancement V2
+
+Metadata katalog di `src/data/games.ts` menggunakan union status dan runtime bertipe. Detail `/games/[slug]` tidak mengimpor engine; player `/games/[slug]/play` memakai daftar importer native literal dan adapter HTML5/external. Billiard tetap memakai loader serta shell immersive miliknya tanpa perubahan internal. Native memakai dependency aplikasi yang kompatibel; build terisolasi memakai iframe sandbox tanpa same-origin. Panduan dan batas keamanan ada di [GAME_INTEGRATION.md](GAME_INTEGRATION.md).
+
 ## Aliran data
 
 ```mermaid
